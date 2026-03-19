@@ -29,7 +29,6 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package сom.github.arsenmonets.refactoringproject;
 
 import com.jme3.app.SimpleApplication;
@@ -62,6 +61,26 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         CubeField app = new CubeField();
         app.start();
     }
+    
+    private static final float FPS_RATE = 1000f / 1f;
+
+    private static final float THEME_CHANGE_INTERVAL = 20.0f;
+    private static final float DIFFICULTY_INCREASE_INTERVAL = 10.0f;
+    private static final float INITIAL_SPEED_DIVIDER = 400f;
+    private static final float ACCELERATION_INCREMENT = .000001f;
+    private static final float SPEED_LIMIT = .1f;
+    
+    private static final int SPAWN_DISTANCE_MIN = 30;
+    private static final int SPAWN_DISTANCE_MAX = 90;
+    private static final int SPAWN_LATERAL_RANGE = 50;
+    private static final int CLEANUP_DISTANCE_BEHIND = 10;
+    
+    private static final float CAM_OFFSET_X = -8f;
+    private static final float CAM_OFFSET_Y = 2f;
+    private static final float CAM_SMOOTHING = .99f;
+    
+    private static final int SCORE_UI_Y_OFFSET = 2;
+    private static final int START_UI_Y_OFFSET = 5;
 
     private BitmapFont defaultFont;
 
@@ -79,7 +98,6 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     private Material playerMaterial;
     private Material floorMaterial;
 
-    final private float fpsRate = 1000f / 1f;
     /**
      * Initializes game 
      */
@@ -96,8 +114,8 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         pressStart = new BitmapText(defaultFont);
         fpsScoreText = new BitmapText(defaultFont);
 
-        loadText(fpsScoreText, "Current Score: 0", defaultFont, 0, 2, 0);
-        loadText(pressStart, "PRESS ENTER", defaultFont, 0, 5, 0);
+        loadText(fpsScoreText, "Current Score: 0", defaultFont, 0, SCORE_UI_Y_OFFSET, 0);
+        loadText(pressStart, "PRESS ENTER", defaultFont, 0, START_UI_Y_OFFSET, 0);
         
         player = createPlayer();
         rootNode.attachChild(player);
@@ -130,9 +148,9 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         obstacleColors.add(ColorRGBA.Red);
         obstacleColors.add(ColorRGBA.Yellow);
         renderer.setBackgroundColor(ColorRGBA.White);
-        speed = lowCap / 400f;
-        coreTime = 20.0f;
-        coreTime2 = 10.0f;
+        speed = lowCap / INITIAL_SPEED_DIVIDER;
+        coreTime = THEME_CHANGE_INTERVAL;
+        coreTime2 = DIFFICULTY_INCREASE_INTERVAL;
         player.setLocalTranslation(0,0,0);
     }
 
@@ -149,13 +167,13 @@ public class CubeField extends SimpleApplication implements AnalogListener {
      * @param tpf Ticks Per Frame
      */
     private void camTakeOver(float tpf) {
-        cam.setLocation(player.getLocalTranslation().add(-8, 2, 0));
+        cam.setLocation(player.getLocalTranslation().add(CAM_OFFSET_X, CAM_OFFSET_Y, 0));
         cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y);
         
         Quaternion rot = new Quaternion();
         rot.fromAngleNormalAxis(camAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));
-        camAngle *= FastMath.pow(.99f, fpsRate * tpf);
+        camAngle *= FastMath.pow(CAM_SMOOTHING, FPS_RATE * tpf);
     }
 
     @Override
@@ -174,8 +192,9 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         Geometry cube = fcube.clone();
         int playerX = (int) player.getLocalTranslation().getX();
         int playerZ = (int) player.getLocalTranslation().getZ();
-        float x = FastMath.nextRandomInt(playerX + difficulty + 30, playerX + difficulty + 90);
-        float z = FastMath.nextRandomInt(playerZ - difficulty - 50, playerZ + difficulty + 50);
+        
+        float x = FastMath.nextRandomInt(playerX + difficulty + SPAWN_DISTANCE_MIN, playerX + difficulty + SPAWN_DISTANCE_MAX);
+        float z = FastMath.nextRandomInt(playerZ - difficulty - SPAWN_LATERAL_RANGE, playerZ + difficulty + SPAWN_LATERAL_RANGE);
         cube.getLocalTranslation().set(x, 0, z);
 
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -237,7 +256,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
      */
     private void gameLost(){
         START = false;
-        loadText(pressStart, "You lost! Press enter to try again.", defaultFont, 0, 5, 0);
+        loadText(pressStart, "You lost! Press enter to try again.", defaultFont, 0, START_UI_Y_OFFSET, 0);
         gameReset();
     }
     
@@ -247,7 +266,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     private void gameLogic(float tpf){
         //Subtract difficulty level in accordance to speed every 10 seconds
         if(timer.getTimeInSeconds()>=coreTime2){
-            coreTime2=timer.getTimeInSeconds()+10;
+            coreTime2=timer.getTimeInSeconds()+DIFFICULTY_INCREASE_INTERVAL;
             if(difficulty<=lowCap){
                 difficulty=lowCap;
             }
@@ -256,11 +275,11 @@ public class CubeField extends SimpleApplication implements AnalogListener {
             }
         }
         
-        if(speed<.1f){
-            speed+=.000001f*tpf*fpsRate;
+        if(speed<SPEED_LIMIT){
+            speed+=ACCELERATION_INCREMENT*tpf*FPS_RATE;
         }
 
-        player.move(speed * tpf * fpsRate, 0, 0);
+        player.move(speed * tpf * FPS_RATE, 0, 0);
         if (cubeField.size() > difficulty){
             cubeField.remove(0);
         }else if (cubeField.size() != difficulty){
@@ -284,7 +303,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
                     return;
                 }
                 //Remove cube if 10 world units behind player
-                if (cubeField.get(i).getLocalTranslation().getX() + 10 < player.getLocalTranslation().getX()){
+                if (cubeField.get(i).getLocalTranslation().getX() + CLEANUP_DISTANCE_BEHIND < player.getLocalTranslation().getX()){
                     cubeField.get(i).removeFromParent();
                     cubeField.remove(cubeField.get(i));
                 }
@@ -292,7 +311,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
             }
         }
 
-        Score += fpsRate * tpf;
+        Score += FPS_RATE * tpf;
         fpsScoreText.setText("Current Score: "+Score);
     }
     /**
@@ -312,10 +331,10 @@ public class CubeField extends SimpleApplication implements AnalogListener {
             guiNode.detachChild(pressStart);
             System.out.println("START");
         }else if (START == true && binding.equals("Left")){
-            player.move(0, 0, -(speed / 2f) * value * fpsRate);
+            player.move(0, 0, -(speed / 2f) * value * FPS_RATE);
             camAngle -= value*tpf;
         }else if (START == true && binding.equals("Right")){
-            player.move(0, 0, (speed / 2f) * value * fpsRate);
+            player.move(0, 0, (speed / 2f) * value * FPS_RATE);
             camAngle += value*tpf;
         }
     }
@@ -327,7 +346,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         if (timer.getTimeInSeconds() >= coreTime){
             
             colorInt++;
-            coreTime = timer.getTimeInSeconds() + 20;
+            coreTime = timer.getTimeInSeconds() + THEME_CHANGE_INTERVAL;
         
 
             switch (colorInt){
@@ -337,14 +356,14 @@ public class CubeField extends SimpleApplication implements AnalogListener {
                     obstacleColors.add(ColorRGBA.Green);
                     renderer.setBackgroundColor(ColorRGBA.Black);
                     playerMaterial.setColor("Color", ColorRGBA.White);
-            floorMaterial.setColor("Color", ColorRGBA.Black);
+                    floorMaterial.setColor("Color", ColorRGBA.Black);
                     break;
                 case 2:
                     obstacleColors.set(0, ColorRGBA.Black);
                     solidBox = true;
                     renderer.setBackgroundColor(ColorRGBA.White);
                     playerMaterial.setColor("Color", ColorRGBA.Gray);
-                        floorMaterial.setColor("Color", ColorRGBA.LightGray);
+                    floorMaterial.setColor("Color", ColorRGBA.LightGray);
                     break;
                 case 3:
                     obstacleColors.set(0, ColorRGBA.Pink);
@@ -353,7 +372,7 @@ public class CubeField extends SimpleApplication implements AnalogListener {
                     obstacleColors.set(0, ColorRGBA.Cyan);
                     obstacleColors.add(ColorRGBA.Magenta);
                     renderer.setBackgroundColor(ColorRGBA.Gray);
-                        floorMaterial.setColor("Color", ColorRGBA.Gray);
+                    floorMaterial.setColor("Color", ColorRGBA.Gray);
                     playerMaterial.setColor("Color", ColorRGBA.White);
                     break;
                 case 5:
@@ -367,17 +386,17 @@ public class CubeField extends SimpleApplication implements AnalogListener {
                     solidBox = true;
                     renderer.setBackgroundColor(ColorRGBA.Black);
                     playerMaterial.setColor("Color", ColorRGBA.Gray);
-                        floorMaterial.setColor("Color", ColorRGBA.LightGray);
+                    floorMaterial.setColor("Color", ColorRGBA.LightGray);
                     break;
                 case 7:
                     obstacleColors.set(0, ColorRGBA.Green);
                     renderer.setBackgroundColor(ColorRGBA.Gray);
                     playerMaterial.setColor("Color", ColorRGBA.Black);
-                        floorMaterial.setColor("Color", ColorRGBA.Orange);
+                    floorMaterial.setColor("Color", ColorRGBA.Orange);
                     break;
                 case 8:
                     obstacleColors.set(0, ColorRGBA.Red);
-                        floorMaterial.setColor("Color", ColorRGBA.Pink);
+                    floorMaterial.setColor("Color", ColorRGBA.Pink);
                     break;
                 case 9:
                     obstacleColors.set(0, ColorRGBA.Orange);
@@ -408,4 +427,4 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         txt.setText(text);
         guiNode.attachChild(txt);
     }
-} 
+}
