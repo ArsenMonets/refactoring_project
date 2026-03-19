@@ -174,12 +174,9 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         Geometry cube = fcube.clone();
         int playerX = (int) player.getLocalTranslation().getX();
         int playerZ = (int) player.getLocalTranslation().getZ();
-//        float x = FastMath.nextRandomInt(playerX + difficulty + 10, playerX + difficulty + 150);
         float x = FastMath.nextRandomInt(playerX + difficulty + 30, playerX + difficulty + 90);
         float z = FastMath.nextRandomInt(playerZ - difficulty - 50, playerZ + difficulty + 50);
         cube.getLocalTranslation().set(x, 0, z);
-
-//        playerX+difficulty+30,playerX+difficulty+90
 
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         if (!solidBox){
