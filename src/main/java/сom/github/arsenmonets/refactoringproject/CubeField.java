@@ -157,26 +157,26 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     }
 
     @Override
-    public void simpleUpdate(float tpf) {
-        camTakeOver(tpf);
+    public void simpleUpdate(float ticksPerFrame) {
+        camTakeOver(ticksPerFrame);
         if (isGameStarted){
-            gameLogic(tpf);
+            gameLogic(ticksPerFrame);
         }
         colorLogic();
     }
 
     /**
      * Forcefully takes over Camera adding functionality and placing it behind the character
-     * @param tpf Ticks Per Frame
+     * @param ticksPerFrame Ticks Per Frame
      */
-    private void camTakeOver(float tpf) {
+    private void camTakeOver(float ticksPerFrame) {
         cam.setLocation(playerNode.getLocalTranslation().add(CAM_OFFSET_X, CAM_OFFSET_Y, 0));
         cam.lookAt(playerNode.getLocalTranslation(), Vector3f.UNIT_Y);
         
         Quaternion rot = new Quaternion();
         rot.fromAngleNormalAxis(currentCamAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));
-        currentCamAngle *= FastMath.pow(CAM_SMOOTHING_FACTOR, ticksPerSecond * tpf);
+        currentCamAngle *= FastMath.pow(CAM_SMOOTHING_FACTOR, ticksPerSecond * ticksPerFrame);
     }
 
     @Override
@@ -266,56 +266,69 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     /**
      * Core Game Logic
      */
-    private void gameLogic(float tpf){
-        //Subtract difficulty level in accordance to speed every 10 seconds
-        if(timer.getTimeInSeconds()>=nextDifficultyUpdateTime){
-            nextDifficultyUpdateTime=timer.getTimeInSeconds()+DIFFICULTY_UPDATE_INTERVAL;
-            if(spawnAreaScale<=minObstaclesLimit){
-                spawnAreaScale=minObstaclesLimit;
-            }
-            else if(spawnAreaScale>minObstaclesLimit){
-                spawnAreaScale-=5;
+    private void gameLogic(float ticksPerFrame){
+        updateDifficulty(ticksPerFrame);
+        movePlayer(ticksPerFrame);
+        updateObstacles();
+        handleCollisions();
+        updateScore(ticksPerFrame);
+    }
+
+    private void updateDifficulty(float ticksPerFrame) {
+        if(timer.getTimeInSeconds() >= nextDifficultyUpdateTime){
+            nextDifficultyUpdateTime = timer.getTimeInSeconds() + DIFFICULTY_UPDATE_INTERVAL;
+            if(spawnAreaScale > minObstaclesLimit){
+                spawnAreaScale -= 5;
+            } else {
+                spawnAreaScale = minObstaclesLimit;
             }
         }
         
-        if(moveSpeed<MAX_SPEED_LIMIT){
-            moveSpeed+=ACCELERATION_INCREMENT*tpf*ticksPerSecond;
+        if(moveSpeed < MAX_SPEED_LIMIT){
+            moveSpeed += ACCELERATION_INCREMENT * ticksPerFrame * ticksPerSecond;
         }
+    }
 
-        playerNode.move(moveSpeed * tpf * ticksPerSecond, 0, 0);
+    private void movePlayer(float ticksPerFrame) {
+        playerNode.move(moveSpeed * ticksPerFrame * ticksPerSecond, 0, 0);
+    }
+
+    private void updateObstacles() {
         if (activeObstacles.size() > spawnAreaScale){
             activeObstacles.remove(0);
-        }else if (activeObstacles.size() != spawnAreaScale){
+        } else if (activeObstacles.size() != spawnAreaScale){
             randomizeCube();
         }
 
         if (activeObstacles.isEmpty()){
             requestClose(false);
-        }else{
-            for (int i = 0; i < activeObstacles.size(); i++){
+        }
+    }
 
-                //better way to check collision
-                Geometry playerModel = (Geometry) playerNode.getChild(0);
-                Geometry cubeModel = activeObstacles.get(i);
+    private void handleCollisions() {
+        Geometry playerModel = (Geometry) playerNode.getChild(0);
+        BoundingVolume pVol = playerModel.getWorldBound();
 
-                BoundingVolume pVol = playerModel.getWorldBound();
-                BoundingVolume vVol = cubeModel.getWorldBound();
+        for (int i = 0; i < activeObstacles.size(); i++) {
+            Geometry cubeModel = activeObstacles.get(i);
+            BoundingVolume vVol = cubeModel.getWorldBound();
 
-                if (pVol.intersects(vVol)){
-                    gameLost();
-                    return;
-                }
-                //Remove cube if 10 world units behind player
-                if (activeObstacles.get(i).getLocalTranslation().getX() + OBSTACLE_CLEANUP_THRESHOLD < playerNode.getLocalTranslation().getX()){
-                    activeObstacles.get(i).removeFromParent();
-                    activeObstacles.remove(activeObstacles.get(i));
-                }
+            if (pVol.intersects(vVol)) {
+                gameLost();
+                return;
+            }
 
+            if (cubeModel.getLocalTranslation().getX() + OBSTACLE_CLEANUP_THRESHOLD < playerNode.getLocalTranslation().getX()) {
+                cubeModel.removeFromParent();
+                activeObstacles.remove(i);
+                i--; 
             }
         }
+    }
 
-        currentScore += ticksPerSecond * tpf;
-        fpsScoreText.setText("Current Score: "+currentScore);
+    private void updateScore(float ticksPerFrame) {
+        currentScore += ticksPerSecond * ticksPerFrame;
+        fpsScoreText.setText("Current Score: " + currentScore);
     }
 
     /**
@@ -329,17 +342,17 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     }
 
     @Override
-    public void onAnalog(String binding, float value, float tpf) {
+    public void onAnalog(String binding, float value, float ticksPerFrame) {
         if (binding.equals("START") && !isGameStarted){
             isGameStarted = true;
             guiNode.detachChild(pressStart);
             System.out.println("START");
         }else if (isGameStarted == true && binding.equals("Left")){
             playerNode.move(0, 0, -(moveSpeed / 2f) * value * ticksPerSecond);
-            currentCamAngle -= value*tpf;
+            currentCamAngle -= value * ticksPerFrame;
         }else if (isGameStarted == true && binding.equals("Right")){
             playerNode.move(0, 0, (moveSpeed / 2f) * value * ticksPerSecond);
-            currentCamAngle += value*tpf;
+            currentCamAngle += value * ticksPerFrame;
         }
     }
 
