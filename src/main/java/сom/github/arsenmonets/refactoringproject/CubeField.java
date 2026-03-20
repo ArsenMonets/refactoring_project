@@ -29,348 +29,144 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package сom.github.arsenmonets.refactoringproject;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.bounding.BoundingVolume;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Dome;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * * @author Original: Kyle "bonechilla" Williams
+ * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
 public class CubeField extends SimpleApplication implements AnalogListener {
 
-    public static void main(String[] args) {
-        CubeField app = new CubeField();
-        app.start();
-    }
-
-    private static final float THEME_CHANGE_INTERVAL = 20.0f;
-    private static final float DIFFICULTY_UPDATE_INTERVAL = 10.0f;
-    private static final float INITIAL_SPEED_DIVIDER = 400f;
-    private static final float ACCELERATION_INCREMENT = .000001f;
-    private static final float MAX_SPEED_LIMIT = .1f;
+    private static final float THEME_INTERVAL = 20.0f;
+    private static final float CAM_SMOOTHING = .99f;
+    private static final Vector3f CAM_OFFSET = new Vector3f(-8f, 2f, 0);
     
-    private static final int BASE_SPAWN_DISTANCE_X = 30;
-    private static final int MAX_SPAWN_DISTANCE_X = 90;
-    private static final int SPAWN_LATERAL_RANGE_Z = 50;
-    private static final int OBSTACLE_CLEANUP_THRESHOLD = 10;
+    private static final int INITIAL_MIN_OBSTACLES = 10;
+    private static final int PLAYER_MESH_INDEX = 0;
+    private static final float SIDE_SPEED_FACTOR = 2.0f;
     
-    private static final float CAM_OFFSET_X = -8f;
-    private static final float CAM_OFFSET_Y = 2f;
-    private static final float CAM_SMOOTHING_FACTOR = .99f;
+    private static final float UI_SCORE_X_POS = 0f;
+    private static final float UI_SCORE_Y_POS = 2f;
+    private static final float UI_START_X_POS = 0f;
+    private static final float UI_START_Y_POS = 5f;
+
+    private ThemeManager themeManager;
+    private ObstacleManager obstacleManager;
+    private PlayerManager playerManager;
+    private GameSession session;
     
-    private static final int UI_SCORE_Y_POS = 2;
-    private static final int UI_START_MSG_Y_POS = 5;
-
-    private BitmapFont defaultFont;
-
     private boolean isGameStarted;
-    private int spawnAreaScale, currentScore, currentThemeIndex, minObstaclesLimit;
-    private Node playerNode;
-    private Geometry obstaclePrototype;
-    private ArrayList<Geometry> activeObstacles;
-    private ArrayList<ColorRGBA> themeColors;
-    private float moveSpeed, nextThemeChangeTime, nextDifficultyUpdateTime;
+    private float nextThemeChange;
     private float currentCamAngle = 0;
-    private BitmapText fpsScoreText, pressStart;
+    
+    private BitmapText scoreText, startText;
+    private BitmapFont defaultFont;
+    private final float ticksPerSecond = 1000f;
 
-    private boolean isWireframeMode = false;
-    private Material playerMaterial;
-    private Material floorMaterial;
-
-    final private float ticksPerSecond = 1000f / 1f;
-
-    private ArrayList<GameTheme> themes;
-
-    private static class GameTheme {
-        ColorRGBA background, player, floor;
-        ColorRGBA[] obstacles;
-        boolean wireframe;
-
-        GameTheme(ColorRGBA bg, ColorRGBA p, ColorRGBA f, boolean wf, ColorRGBA... obs) {
-            this.background = bg;
-            this.player = p;
-            this.floor = f;
-            this.wireframe = wf;
-            this.obstacles = obs;
-        }
+    public static void main(String[] args) {
+        new CubeField().start();
     }
 
-    /**
-     * Initializes game 
-     */
     @Override
     public void simpleInitApp() {
         Logger.getLogger("com.jme3").setLevel(Level.WARNING);
-
         flyCam.setEnabled(false);
         setDisplayStatView(false);
 
+        themeManager = new ThemeManager();
+        themeManager.initDefaultThemes();
+        obstacleManager = new ObstacleManager(rootNode, assetManager);
+        playerManager = new PlayerManager(assetManager);
+        session = new GameSession(INITIAL_MIN_OBSTACLES);
+        
+        rootNode.attachChild(playerManager.getPlayerNode());
+        initUI();
         Keys();
+        gameReset();
+    }
 
+    private void initUI() {
         defaultFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-        pressStart = new BitmapText(defaultFont);
-        fpsScoreText = new BitmapText(defaultFont);
+        scoreText = new BitmapText(defaultFont);
+        startText = new BitmapText(defaultFont);
+        loadText(scoreText, "Score: 0", UI_SCORE_X_POS, UI_SCORE_Y_POS);
+        loadText(startText, "PRESS ENTER", UI_START_X_POS, UI_START_Y_POS);
+    }
 
-        loadText(fpsScoreText, "Current Score: 0", defaultFont, 0, UI_SCORE_Y_POS, 0);
-        loadText(pressStart, "PRESS ENTER", defaultFont, 0, UI_START_MSG_Y_POS, 0);
+    private void gameReset() {
+        session.reset(timer.getTimeInSeconds());
+        obstacleManager.clear();
+        obstacleManager.setPrototype(new Geometry("Box", new Box(1, 1, 1))); 
         
-        playerNode = createPlayer();
-        rootNode.attachChild(playerNode);
-        activeObstacles = new ArrayList<Geometry>();
-        themeColors = new ArrayList<ColorRGBA>();
-
-        initThemes();
-        gameReset();
-    }
-
-    private void initThemes() {
-        themes = new ArrayList<>();
-        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Gray, false, ColorRGBA.Orange, ColorRGBA.Red, ColorRGBA.Yellow));
-        themes.add(new GameTheme(ColorRGBA.Black, ColorRGBA.White, ColorRGBA.Black, true, ColorRGBA.Green));
-        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.Black));
-        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.Pink));
-        themes.add(new GameTheme(ColorRGBA.Gray, ColorRGBA.White, ColorRGBA.Gray, false, ColorRGBA.Cyan, ColorRGBA.Magenta));
-        themes.add(new GameTheme(ColorRGBA.Pink, ColorRGBA.White, ColorRGBA.Gray, true, ColorRGBA.Cyan, ColorRGBA.Magenta));
-        themes.add(new GameTheme(ColorRGBA.Black, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.White));
-        themes.add(new GameTheme(ColorRGBA.Gray, ColorRGBA.Black, ColorRGBA.Orange, false, ColorRGBA.Green));
-        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Pink, false, ColorRGBA.Red));
-    }
-
-    private void applyTheme(int index) {
-        GameTheme t = themes.get(index);
-        renderer.setBackgroundColor(t.background);
-        playerMaterial.setColor("Color", t.player);
-        floorMaterial.setColor("Color", t.floor);
-        isWireframeMode = t.wireframe;
-        themeColors.clear();
-        for (ColorRGBA c : t.obstacles) themeColors.add(c);
-    }
-
-    /**
-     * Used to reset cubeField 
-     */
-    private void gameReset(){
-        currentScore = 0;
-        minObstaclesLimit = 10;
-        currentThemeIndex = 0;
-        spawnAreaScale = 40;
-
-        for (Geometry cube : activeObstacles){
-            cube.removeFromParent();
-        }
-        activeObstacles.clear();
-
-        if (obstaclePrototype != null){
-            obstaclePrototype.removeFromParent();
-        }
-        obstaclePrototype = createFirstCube();
-
-        applyTheme(0);
-
-        moveSpeed = minObstaclesLimit / INITIAL_SPEED_DIVIDER;
-        nextThemeChangeTime = THEME_CHANGE_INTERVAL;
-        nextDifficultyUpdateTime = DIFFICULTY_UPDATE_INTERVAL;
-        playerNode.setLocalTranslation(0,0,0);
+        themeManager.reset();
+        themeManager.applyTheme(0, renderer, playerManager.getPlayerMaterial(), playerManager.getFloorMaterial());
+        
+        playerManager.reset();
+        nextThemeChange = timer.getTimeInSeconds() + THEME_INTERVAL;
     }
 
     @Override
-    public void simpleUpdate(float ticksPerFrame) {
-        camTakeOver(ticksPerFrame);
-        if (isGameStarted){
-            gameLogic(ticksPerFrame);
+    public void simpleUpdate(float tpf) {
+        updateCamera(tpf);
+        if (isGameStarted) {
+            runGameLoop(tpf);
         }
-        colorLogic();
+        updateVisuals();
     }
 
-    /**
-     * Forcefully takes over Camera adding functionality and placing it behind the character
-     * @param ticksPerFrame Ticks Per Frame
-     */
-    private void camTakeOver(float ticksPerFrame) {
-        cam.setLocation(playerNode.getLocalTranslation().add(CAM_OFFSET_X, CAM_OFFSET_Y, 0));
-        cam.lookAt(playerNode.getLocalTranslation(), Vector3f.UNIT_Y);
+    private void updateCamera(float tpf) {
+        cam.setLocation(playerManager.getLocation().add(CAM_OFFSET));
+        cam.lookAt(playerManager.getLocation(), Vector3f.UNIT_Y);
         
-        Quaternion rot = new Quaternion();
-        rot.fromAngleNormalAxis(currentCamAngle, Vector3f.UNIT_Z);
+        Quaternion rot = new Quaternion().fromAngleNormalAxis(currentCamAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));
-        currentCamAngle *= FastMath.pow(CAM_SMOOTHING_FACTOR, ticksPerSecond * ticksPerFrame);
+        currentCamAngle *= FastMath.pow(CAM_SMOOTHING, ticksPerSecond * tpf);
     }
 
-    @Override
-    public void requestClose(boolean esc) {
-        if (!esc){
-            System.out.println("The game was quit.");
-        }else{
-            System.out.println("Player has Collided. Final Score is " + currentScore);
-        }
-        context.destroy(false);
-    }
-
-    /**
-     * Randomly Places a cube on the map between 30 and 90 paces away from player
-     */
-    private void randomizeCube() {
-        Geometry cube = obstaclePrototype.clone();
-        int playerX = (int) playerNode.getLocalTranslation().getX();
-        int playerZ = (int) playerNode.getLocalTranslation().getZ();
-        float x = FastMath.nextRandomInt(playerX + spawnAreaScale + BASE_SPAWN_DISTANCE_X, playerX + spawnAreaScale + MAX_SPAWN_DISTANCE_X);
-        float z = FastMath.nextRandomInt(playerZ - spawnAreaScale - SPAWN_LATERAL_RANGE_Z, playerZ + spawnAreaScale + SPAWN_LATERAL_RANGE_Z);
-        cube.getLocalTranslation().set(x, 0, z);
-
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        if (isWireframeMode){
-            mat.getAdditionalRenderState().setWireframe(true);
-        }
-        mat.setColor("Color", themeColors.get(FastMath.nextRandomInt(0, themeColors.size() - 1)));
-        cube.setMaterial(mat);
-
-        rootNode.attachChild(cube);
-        activeObstacles.add(cube);
-    }
-
-    private Geometry createFirstCube() {
-        Vector3f loc = playerNode.getLocalTranslation();
-        loc.addLocal(4, 0, 0);
-        Box b = new Box(1, 1, 1);
-        Geometry geom = new Geometry("Box", b);
-        geom.setLocalTranslation(loc);
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Blue);
-        geom.setMaterial(mat);
-
-        return geom;
-    }
-
-    private Node createPlayer() {
-        Dome b = new Dome(Vector3f.ZERO, 10, 100, 1);
-        Geometry playerMesh = new Geometry("Box", b);
-
-        playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        playerMaterial.setColor("Color", ColorRGBA.Red);
-        playerMesh.setMaterial(playerMaterial);
-        playerMesh.setName("player");
-
-        Box floor = new Box(100, 0, 100);
+    private void runGameLoop(float tpf) {
+        session.update(tpf, timer.getTimeInSeconds(), ticksPerSecond);
         
-        Geometry floorMesh = new Geometry("Box", floor);
+        playerManager.move(session.getMoveSpeed() * tpf * ticksPerSecond, 0, 0);
+        obstacleManager.spawnIfNeeded(playerManager.getLocation(), session.getSpawnAreaScale(), themeManager);
+        obstacleManager.cleanup(playerManager.getLocation().x);
+        
+        Spatial playerMesh = playerManager.getPlayerNode().getChild(PLAYER_MESH_INDEX);
+        if (obstacleManager.checkCollisions(playerMesh.getWorldBound())) {
+            gameOver();
+        }
 
-        Vector3f translation = Vector3f.ZERO.add(playerMesh.getLocalTranslation().getX(),
-                playerMesh.getLocalTranslation().getY() - 1, 0);
-
-        floorMesh.setLocalTranslation(translation);
-
-        floorMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        floorMaterial.setColor("Color", ColorRGBA.LightGray);
-        floorMesh.setMaterial(floorMaterial);
-        floorMesh.setName("floor");
-
-        Node playerNode = new Node();
-        playerNode.attachChild(playerMesh);
-        playerNode.attachChild(floorMesh);
-
-        return playerNode;
+        scoreText.setText("Current Score: " + session.getCurrentScore());
     }
 
-    /**
-     * If Game is Lost display Score and Reset the Game
-     */
-    private void gameLost(){
+    private void updateVisuals() {
+        if (timer.getTimeInSeconds() >= nextThemeChange) {
+            nextThemeChange += THEME_INTERVAL;
+            themeManager.nextTheme(renderer, playerManager.getPlayerMaterial(), playerManager.getFloorMaterial());
+        }
+    }
+
+    private void gameOver() {
         isGameStarted = false;
-        loadText(pressStart, "You lost! Press enter to try again.", defaultFont, 0, UI_START_MSG_Y_POS, 0);
+        startText.setText("You lost! Press enter to try again.");
+        guiNode.attachChild(startText);
         gameReset();
     }
-    
-    /**
-     * Core Game Logic
-     */
-    private void gameLogic(float ticksPerFrame){
-        updateDifficulty(ticksPerFrame);
-        movePlayer(ticksPerFrame);
-        updateObstacles();
-        handleCollisions();
-        updateScore(ticksPerFrame);
-    }
 
-    private void updateDifficulty(float ticksPerFrame) {
-        if(timer.getTimeInSeconds() >= nextDifficultyUpdateTime){
-            nextDifficultyUpdateTime = timer.getTimeInSeconds() + DIFFICULTY_UPDATE_INTERVAL;
-            if(spawnAreaScale > minObstaclesLimit){
-                spawnAreaScale -= 5;
-            } else {
-                spawnAreaScale = minObstaclesLimit;
-            }
-        }
-        
-        if(moveSpeed < MAX_SPEED_LIMIT){
-            moveSpeed += ACCELERATION_INCREMENT * ticksPerFrame * ticksPerSecond;
-        }
-    }
-
-    private void movePlayer(float ticksPerFrame) {
-        playerNode.move(moveSpeed * ticksPerFrame * ticksPerSecond, 0, 0);
-    }
-
-    private void updateObstacles() {
-        if (activeObstacles.size() > spawnAreaScale){
-            activeObstacles.remove(0);
-        } else if (activeObstacles.size() != spawnAreaScale){
-            randomizeCube();
-        }
-
-        if (activeObstacles.isEmpty()){
-            requestClose(false);
-        }
-    }
-
-    private void handleCollisions() {
-        Geometry playerModel = (Geometry) playerNode.getChild(0);
-        BoundingVolume pVol = playerModel.getWorldBound();
-
-        for (int i = 0; i < activeObstacles.size(); i++) {
-            Geometry cubeModel = activeObstacles.get(i);
-            BoundingVolume vVol = cubeModel.getWorldBound();
-
-            if (pVol.intersects(vVol)) {
-                gameLost();
-                return;
-            }
-
-            if (cubeModel.getLocalTranslation().getX() + OBSTACLE_CLEANUP_THRESHOLD < playerNode.getLocalTranslation().getX()) {
-                cubeModel.removeFromParent();
-                activeObstacles.remove(i);
-                i--; 
-            }
-        }
-    }
-
-    private void updateScore(float ticksPerFrame) {
-        currentScore += ticksPerSecond * ticksPerFrame;
-        fpsScoreText.setText("Current Score: " + currentScore);
-    }
-
-    /**
-     * Sets up the keyboard bindings
-     */
     private void Keys() {
         inputManager.addMapping("START", new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addMapping("Left",  new KeyTrigger(KeyInput.KEY_LEFT));
@@ -379,43 +175,25 @@ public class CubeField extends SimpleApplication implements AnalogListener {
     }
 
     @Override
-    public void onAnalog(String binding, float value, float ticksPerFrame) {
-        if (binding.equals("START") && !isGameStarted){
+    public void onAnalog(String binding, float value, float tpf) {
+        if (binding.equals("START") && !isGameStarted) {
             isGameStarted = true;
-            guiNode.detachChild(pressStart);
-            System.out.println("START");
-        }else if (isGameStarted == true && binding.equals("Left")){
-            playerNode.move(0, 0, -(moveSpeed / 2f) * value * ticksPerSecond);
-            currentCamAngle -= value * ticksPerFrame;
-        }else if (isGameStarted == true && binding.equals("Right")){
-            playerNode.move(0, 0, (moveSpeed / 2f) * value * ticksPerSecond);
-            currentCamAngle += value * ticksPerFrame;
+            guiNode.detachChild(startText);
+        } else if (isGameStarted) {
+            float sideSpeed = (session.getMoveSpeed() / SIDE_SPEED_FACTOR) * value * ticksPerSecond;
+            if (binding.equals("Left")) {
+                playerManager.move(0, 0, -sideSpeed);
+                currentCamAngle -= value * tpf;
+            } else if (binding.equals("Right")) {
+                playerManager.move(0, 0, sideSpeed);
+                currentCamAngle += value * tpf;
+            }
         }
     }
 
-    /**
-     * Determines the colors of the player, floor, obstacle and background
-     */
-    private void colorLogic() {
-        if (timer.getTimeInSeconds() >= nextThemeChangeTime){
-            currentThemeIndex = (currentThemeIndex + 1) % themes.size();
-            nextThemeChangeTime = timer.getTimeInSeconds() + THEME_CHANGE_INTERVAL;
-            applyTheme(currentThemeIndex);
-        }
-    }
-
-    /**
-     * Sets up a BitmapText to be displayed
-     * @param txt the Bitmap Text
-     * @param text the 
-     * @param font the font of the text
-     * @param x    
-     * @param y
-     * @param z
-     */
-    private void loadText(BitmapText txt, String text, BitmapFont font, float x, float y, float z) {
-        txt.setSize(font.getCharSet().getRenderedSize());
-        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, z);
+    private void loadText(BitmapText txt, String text, float x, float y) {
+        txt.setSize(defaultFont.getCharSet().getRenderedSize());
+        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, 0);
         txt.setText(text);
         guiNode.attachChild(txt);
     }
