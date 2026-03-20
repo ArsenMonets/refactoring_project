@@ -99,6 +99,22 @@ public class CubeField extends SimpleApplication implements AnalogListener {
 
     final private float ticksPerSecond = 1000f / 1f;
 
+    private ArrayList<GameTheme> themes;
+
+    private static class GameTheme {
+        ColorRGBA background, player, floor;
+        ColorRGBA[] obstacles;
+        boolean wireframe;
+
+        GameTheme(ColorRGBA bg, ColorRGBA p, ColorRGBA f, boolean wf, ColorRGBA... obs) {
+            this.background = bg;
+            this.player = p;
+            this.floor = f;
+            this.wireframe = wf;
+            this.obstacles = obs;
+        }
+    }
+
     /**
      * Initializes game 
      */
@@ -123,7 +139,31 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         activeObstacles = new ArrayList<Geometry>();
         themeColors = new ArrayList<ColorRGBA>();
 
+        initThemes();
         gameReset();
+    }
+
+    private void initThemes() {
+        themes = new ArrayList<>();
+        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Gray, false, ColorRGBA.Orange, ColorRGBA.Red, ColorRGBA.Yellow));
+        themes.add(new GameTheme(ColorRGBA.Black, ColorRGBA.White, ColorRGBA.Black, true, ColorRGBA.Green));
+        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.Black));
+        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.Pink));
+        themes.add(new GameTheme(ColorRGBA.Gray, ColorRGBA.White, ColorRGBA.Gray, false, ColorRGBA.Cyan, ColorRGBA.Magenta));
+        themes.add(new GameTheme(ColorRGBA.Pink, ColorRGBA.White, ColorRGBA.Gray, true, ColorRGBA.Cyan, ColorRGBA.Magenta));
+        themes.add(new GameTheme(ColorRGBA.Black, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.White));
+        themes.add(new GameTheme(ColorRGBA.Gray, ColorRGBA.Black, ColorRGBA.Orange, false, ColorRGBA.Green));
+        themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Pink, false, ColorRGBA.Red));
+    }
+
+    private void applyTheme(int index) {
+        GameTheme t = themes.get(index);
+        renderer.setBackgroundColor(t.background);
+        playerMaterial.setColor("Color", t.player);
+        floorMaterial.setColor("Color", t.floor);
+        isWireframeMode = t.wireframe;
+        themeColors.clear();
+        for (ColorRGBA c : t.obstacles) themeColors.add(c);
     }
 
     /**
@@ -145,11 +185,8 @@ public class CubeField extends SimpleApplication implements AnalogListener {
         }
         obstaclePrototype = createFirstCube();
 
-        themeColors.clear();
-        themeColors.add(ColorRGBA.Orange);
-        themeColors.add(ColorRGBA.Red);
-        themeColors.add(ColorRGBA.Yellow);
-        renderer.setBackgroundColor(ColorRGBA.White);
+        applyTheme(0);
+
         moveSpeed = minObstaclesLimit / INITIAL_SPEED_DIVIDER;
         nextThemeChangeTime = THEME_CHANGE_INTERVAL;
         nextDifficultyUpdateTime = DIFFICULTY_UPDATE_INTERVAL;
@@ -361,72 +398,9 @@ public class CubeField extends SimpleApplication implements AnalogListener {
      */
     private void colorLogic() {
         if (timer.getTimeInSeconds() >= nextThemeChangeTime){
-            
-            currentThemeIndex++;
+            currentThemeIndex = (currentThemeIndex + 1) % themes.size();
             nextThemeChangeTime = timer.getTimeInSeconds() + THEME_CHANGE_INTERVAL;
-        
-
-            switch (currentThemeIndex){
-                case 1:
-                    themeColors.clear();
-                    isWireframeMode = true;
-                    themeColors.add(ColorRGBA.Green);
-                    renderer.setBackgroundColor(ColorRGBA.Black);
-                    playerMaterial.setColor("Color", ColorRGBA.White);
-                    floorMaterial.setColor("Color", ColorRGBA.Black);
-                    break;
-                case 2:
-                    themeColors.set(0, ColorRGBA.Black);
-                    isWireframeMode = false;
-                    renderer.setBackgroundColor(ColorRGBA.White);
-                    playerMaterial.setColor("Color", ColorRGBA.Gray);
-                    floorMaterial.setColor("Color", ColorRGBA.LightGray);
-                    break;
-                case 3:
-                    themeColors.set(0, ColorRGBA.Pink);
-                    break;
-                case 4:
-                    themeColors.set(0, ColorRGBA.Cyan);
-                    themeColors.add(ColorRGBA.Magenta);
-                    renderer.setBackgroundColor(ColorRGBA.Gray);
-                    floorMaterial.setColor("Color", ColorRGBA.Gray);
-                    playerMaterial.setColor("Color", ColorRGBA.White);
-                    break;
-                case 5:
-                    themeColors.remove(0);
-                    renderer.setBackgroundColor(ColorRGBA.Pink);
-                    isWireframeMode = true;
-                    playerMaterial.setColor("Color", ColorRGBA.White);
-                    break;
-                case 6:
-                    themeColors.set(0, ColorRGBA.White);
-                    isWireframeMode = false;
-                    renderer.setBackgroundColor(ColorRGBA.Black);
-                    playerMaterial.setColor("Color", ColorRGBA.Gray);
-                    floorMaterial.setColor("Color", ColorRGBA.LightGray);
-                    break;
-                case 7:
-                    themeColors.set(0, ColorRGBA.Green);
-                    renderer.setBackgroundColor(ColorRGBA.Gray);
-                    playerMaterial.setColor("Color", ColorRGBA.Black);
-                    floorMaterial.setColor("Color", ColorRGBA.Orange);
-                    break;
-                case 8:
-                    themeColors.set(0, ColorRGBA.Red);
-                    floorMaterial.setColor("Color", ColorRGBA.Pink);
-                    break;
-                case 9:
-                    themeColors.set(0, ColorRGBA.Orange);
-                    themeColors.add(ColorRGBA.Red);
-                    themeColors.add(ColorRGBA.Yellow);
-                    renderer.setBackgroundColor(ColorRGBA.White);
-                    playerMaterial.setColor("Color", ColorRGBA.Red);
-                    floorMaterial.setColor("Color", ColorRGBA.Gray);
-                    currentThemeIndex=0;
-                    break;
-                default:
-                    break;
-            }
+            applyTheme(currentThemeIndex);
         }
     }
 
