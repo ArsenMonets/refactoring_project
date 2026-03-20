@@ -102,26 +102,23 @@ public class CubeField extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
-        cameraManager.update(playerManager.getLocation(), tpf, ticksPerSecond);
-        environmentManager.update(playerManager.getLocation());
+        float timeStep = tpf * ticksPerSecond;
         if (isGameStarted) {
-            runGameLogic(tpf);
+            runGameLogic(tpf, timeStep);
         }
-
+        environmentManager.update(playerManager.getLocation());
+        cameraManager.update(playerManager.getLocation(), timeStep);
         checkThemeUpdate();
     }
 
-    private void runGameLogic(float tpf) {
+    private void runGameLogic(float tpf, float timeStep) {
         session.update(tpf, timer.getTimeInSeconds(), ticksPerSecond);
-        
-        playerManager.move(session.getMoveSpeed() * tpf * ticksPerSecond, 0, 0);
+        playerManager.move(session.getMoveSpeed() * timeStep, 0, 0); 
         obstacleManager.spawnIfNeeded(playerManager.getLocation(), session.getSpawnAreaScale(), themeManager);
         obstacleManager.cleanup(playerManager.getLocation().x);
-
         if (obstacleManager.checkCollisions(playerManager.getCollisionBounds())) {
             handleGameOver();
         }
-
         uiManager.updateScore(session.getCurrentScore());
     }
 

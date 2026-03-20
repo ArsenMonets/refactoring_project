@@ -50,14 +50,12 @@ public class CameraManager {
         this.cam = cam;
     }
 
-    public void update(Vector3f targetLocation, float tpf, float tps) {
+    public void update(Vector3f targetLocation, float timeStep) {
         cam.setLocation(targetLocation.add(CAM_OFFSET));
         cam.lookAt(targetLocation, Vector3f.UNIT_Y);
-        
         Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));
-
-        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, tps * tpf);
+        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, timeStep);
     }
 
     public void addTilt(float value) {
