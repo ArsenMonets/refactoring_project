@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject;
+package сom.github.arsenmonets.refactoringproject.themes;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -57,9 +57,6 @@ public class ThemeManager {
         themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Pink, false, ColorRGBA.Red));
     }
 
-    /**
-     * Determines the colors of the player, floor, obstacle and background
-     */
     public void applyTheme(int index, Renderer renderer, Material playerMat, Material floorMat) {
         GameTheme t = themes.get(index);
         renderer.setBackgroundColor(t.getBackground());

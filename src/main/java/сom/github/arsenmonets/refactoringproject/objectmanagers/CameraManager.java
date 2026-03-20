@@ -29,51 +29,38 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject;
+package сom.github.arsenmonets.refactoringproject.objectmanagers;
+
+import com.jme3.renderer.Camera;
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
-public class GameSession {
-    private static final float DIFFICULTY_UPDATE_INTERVAL = 10.0f;
-    private static final float ACCELERATION_PER_TICK = .000001f;
-    private static final float MAX_SPEED_LIMIT = .1f;
-    private static final float SPEED_DIVIDER_CONSTANT = 400f;
-    private static final int SPAWN_SCALE_REDUCTION = 5;
-    private static final int INITIAL_SPAWN_SCALE = 40;
+public class CameraManager {
+    private static final Vector3f CAM_OFFSET = new Vector3f(-8f, 2f, 0);
+    private static final float SMOOTHING_FACTOR = .99f;
+    private final Camera cam;
+    private float currentAngle = 0;
 
-    private float currentScore;
-    private int spawnAreaScale;
-    private float moveSpeed;
-    private float nextDifficultyUpdate;
-    private final int minObstacles;
-
-    public GameSession(int minObstacles) {
-        this.minObstacles = minObstacles;
+    public CameraManager(Camera cam) {
+        this.cam = cam;
     }
 
-    public void reset(float currentTime) {
-        currentScore = 0;
-        spawnAreaScale = INITIAL_SPAWN_SCALE;
-        moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
-        nextDifficultyUpdate = currentTime + DIFFICULTY_UPDATE_INTERVAL;
+    public void update(Vector3f targetLocation, float tpf, float tps) {
+        cam.setLocation(targetLocation.add(CAM_OFFSET));
+        cam.lookAt(targetLocation, Vector3f.UNIT_Y);
+        
+        Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
+        cam.setRotation(cam.getRotation().mult(rot));
+
+        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, tps * tpf);
     }
 
-    public void update(float tpf, float currentTime, float ticksPerSecond) {
-        if (currentTime >= nextDifficultyUpdate) {
-            nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
-            spawnAreaScale = Math.max(minObstacles, spawnAreaScale - SPAWN_SCALE_REDUCTION);
-        }
-
-        if (moveSpeed < MAX_SPEED_LIMIT) {
-            moveSpeed += ACCELERATION_PER_TICK * tpf * ticksPerSecond;
-        }
-
-        currentScore += ticksPerSecond * tpf;
+    public void addTilt(float value) {
+        currentAngle += value;
     }
-
-    public float getMoveSpeed() { return moveSpeed; }
-    public int getSpawnAreaScale() { return spawnAreaScale; }
-    public int getCurrentScore() { return (int) currentScore; }
 }
