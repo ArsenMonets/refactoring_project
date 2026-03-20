@@ -47,13 +47,18 @@ import сom.github.arsenmonets.refactoringproject.ui.UIManager;
  * @author Refactoring: Arsen Monets
  */
 public class GameInputManager implements AnalogListener {
+    
+    private static final String ACTION_START = "START";
+    private static final String MOVE_LEFT = "Left";
+    private static final String MOVE_RIGHT = "Right";
+
     private final InputManager inputManager;
     private final CubeField game;
     private final PlayerManager player;
     private final CameraManager camera;
     private final GameSession session;
     private final UIManager ui;
-	private final float ticksPerSecond;
+    private final float ticksPerSecond;
 
     public GameInputManager(CubeField game, PlayerManager player, CameraManager camera, GameSession session, UIManager ui, float ticksPerSecond) {
         this.inputManager = game.getInputManager();
@@ -66,23 +71,25 @@ public class GameInputManager implements AnalogListener {
     }
 
     public void init() {
-        inputManager.addMapping("START", new KeyTrigger(KeyInput.KEY_RETURN));
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
-        inputManager.addListener(this, "START", "Left", "Right");
+        inputManager.addMapping(ACTION_START, new KeyTrigger(KeyInput.KEY_RETURN));
+        inputManager.addMapping(MOVE_LEFT, new KeyTrigger(KeyInput.KEY_LEFT));
+        inputManager.addMapping(MOVE_RIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
+
+        inputManager.addListener(this, ACTION_START, MOVE_LEFT, MOVE_RIGHT);
     }
 
     @Override
     public void onAnalog(String name, float val, float tpf) {
-        if (name.equals("START") && !game.isGameStarted()) {
+        if (name.equals(ACTION_START) && !game.isGameStarted()) {
             game.startGame();
             ui.hideStatus();
         } else if (game.isGameStarted()) {
             float moveVal = (session.getMoveSpeed() / 2f) * val * ticksPerSecond; 
-            if (name.equals("Left")) {
+            
+            if (name.equals(MOVE_LEFT)) {
                 player.move(0, 0, -moveVal);
                 camera.addTilt(-val * tpf);
-            } else if (name.equals("Right")) {
+            } else if (name.equals(MOVE_RIGHT)) {
                 player.move(0, 0, moveVal);
                 camera.addTilt(val * tpf);
             }

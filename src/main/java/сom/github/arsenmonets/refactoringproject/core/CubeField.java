@@ -66,7 +66,7 @@ public class CubeField extends SimpleApplication {
     
     private boolean isGameStarted;
     private float nextThemeChange;
-    private final float ticksPerSecond = 1000f;
+    private final float ticksPerSecond = 1000f / 1f;
 
     public static void main(String[] args) { new CubeField().start(); }
 
