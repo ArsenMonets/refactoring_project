@@ -60,17 +60,15 @@ public class GameSession {
         nextDifficultyUpdate = currentTime + DIFFICULTY_UPDATE_INTERVAL;
     }
 
-    public void update(float tpf, float currentTime, float ticksPerSecond) {
+    public void update(float currentTime, float timeStep) {
         if (currentTime >= nextDifficultyUpdate) {
             nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
             spawnAreaScale = Math.max(minObstacles, spawnAreaScale - SPAWN_SCALE_REDUCTION);
         }
-
         if (moveSpeed < MAX_SPEED_LIMIT) {
-            moveSpeed += ACCELERATION_PER_TICK * tpf * ticksPerSecond;
+            moveSpeed += ACCELERATION_PER_TICK * timeStep;
         }
-
-        currentScore += ticksPerSecond * tpf;
+        currentScore += timeStep;
     }
 
     public float getMoveSpeed() { return moveSpeed; }
