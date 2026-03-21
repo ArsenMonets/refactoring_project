@@ -55,6 +55,7 @@ public class CubeField extends SimpleApplication {
     private static final float THEME_CHANGE_INTERVAL = 20.0f;
     private static final int INITIAL_OBSTACLES = 10;
     private static final float TICKS_PER_SECOND = 1000f;
+    private static final Geometry PROTOTYPE_OBSTACLE = new Geometry("Box", new Box(1, 1, 1));
 
     private ThemeManager themeManager;
     private ObstacleManager obstacleManager;
@@ -89,8 +90,7 @@ public class CubeField extends SimpleApplication {
         playerManager = new PlayerManager(assetManager, session);
         environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
         themeManager = new ThemeManager(renderer, playerManager, environmentManager);
-        obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager,
-        		new Geometry("Box", new Box(1, 1, 1)));
+        obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager, PROTOTYPE_OBSTACLE);
         cameraManager = new CameraManager(cam, playerManager);
         uiManager = new UIManager(assetManager, guiNode, session);
         
