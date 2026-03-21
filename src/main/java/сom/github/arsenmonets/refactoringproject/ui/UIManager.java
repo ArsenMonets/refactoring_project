@@ -36,6 +36,8 @@ import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.scene.Node;
 
+import сom.github.arsenmonets.refactoringproject.core.GameSession;
+
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
@@ -45,9 +47,11 @@ public class UIManager {
     private final BitmapText scoreText;
     private final BitmapText statusText;
     private final Node guiNode;
+    private final GameSession session;
 
-    public UIManager(AssetManager assetManager, Node guiNode) {
+    public UIManager(AssetManager assetManager, Node guiNode, GameSession session) {
         this.guiNode = guiNode;
+        this.session = session;
         BitmapFont font = assetManager.loadFont(FONT_PATH);
         
         scoreText = createText(font, 0, 2);
@@ -63,8 +67,8 @@ public class UIManager {
         return txt;
     }
 
-    public void updateScore(int score) {
-        scoreText.setText("Current Score: " + score);
+    public void update() {
+        scoreText.setText("Current Score: " + session.getCurrentScore());
     }
 
     public void showStatus(String text) {

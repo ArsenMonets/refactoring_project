@@ -39,9 +39,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 
+import сom.github.arsenmonets.refactoringproject.core.GameSession;
 import сom.github.arsenmonets.refactoringproject.themes.ThemeManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
@@ -54,50 +56,67 @@ public class ObstacleManager {
     private static final float CLEANUP_THRESHOLD_X = 10f;
     private static final String MATERIAL_PATH = "Common/MatDefs/Misc/Unshaded.j3md";
 
-    private final ArrayList<Geometry> activeObstacles = new ArrayList<>();
+    private final List<Geometry> activeObstacles = new ArrayList<>();
     private final Node rootNode;
     private final AssetManager assetManager;
-    private Geometry prototype;
+    private final GameSession session;
+    private final PlayerManager playerManager;
+    private final ThemeManager themeManager;
+    
+    private final Geometry prototype;
 
-    public ObstacleManager(Node rootNode, AssetManager assetManager) {
+    public ObstacleManager(Node rootNode, AssetManager assetManager, PlayerManager playerManager, 
+                           GameSession session, ThemeManager themeManager, Geometry prototype) {
         this.rootNode = rootNode;
         this.assetManager = assetManager;
+        this.playerManager = playerManager;
+        this.session = session;
+        this.themeManager = themeManager;
+		this.prototype = prototype;
     }
 
-    public void setPrototype(Geometry prototype) { 
-        this.prototype = prototype; 
+    public void update() {
+        spawnIfNeeded();
+        cleanup();
     }
 
-    public void spawnIfNeeded(Vector3f playerPos, int currentScale, ThemeManager themeManager) {
-        if (activeObstacles.size() < currentScale) {
-            spawn(playerPos.x, playerPos.z, currentScale, themeManager);
+    private void spawnIfNeeded() {
+        if (activeObstacles.size() < session.getSpawnAreaScale()) {
+            spawn();
         }
     }
 
-    private void spawn(float pX, float pZ, int scale, ThemeManager themes) {
-        Geometry cube = prototype.clone();
-        
-        int minX = (int)pX + scale + SPAWN_MIN_DISTANCE_X;
-        int maxX = (int)pX + scale + SPAWN_MAX_DISTANCE_X;
-        int minZ = (int)pZ - scale - SPAWN_Z_SPREAD;
-        int maxZ = (int)pZ + scale + SPAWN_Z_SPREAD;
+    private void spawn() {
+        if (prototype == null) return;
 
-        float x = FastMath.nextRandomInt(minX, maxX);
-        float z = FastMath.nextRandomInt(minZ, maxZ);
+        Geometry cube = prototype.clone();
+        int scale = session.getSpawnAreaScale();
+        Vector3f playerPos = playerManager.getLocation();
+
+        float minX = playerPos.x + scale + SPAWN_MIN_DISTANCE_X;
+        float maxX = playerPos.x + scale + SPAWN_MAX_DISTANCE_X;
+        
+        float minZ = playerPos.z - scale - SPAWN_Z_SPREAD;
+        float maxZ = playerPos.z + scale + SPAWN_Z_SPREAD;
+
+        float x = FastMath.nextRandomFloat() * (maxX - minX) + minX;
+        float z = FastMath.nextRandomFloat() * (maxZ - minZ) + minZ;
+        
         cube.setLocalTranslation(x, 0, z);
 
         Material mat = new Material(assetManager, MATERIAL_PATH);
-        if (themes.isCurrentThemeWireframe()) {
+        if (themeManager.isCurrentThemeWireframe()) {
             mat.getAdditionalRenderState().setWireframe(true);
         }
-        mat.setColor("Color", themes.getRandomObstacleColor());
+        mat.setColor("Color", themeManager.getRandomObstacleColor());
         cube.setMaterial(mat);
 
         rootNode.attachChild(cube);
         activeObstacles.add(cube);
     }
 
-    public boolean checkCollisions(BoundingVolume playerVolume) {
+    public boolean checkCollisions() {
+        BoundingVolume playerVolume = playerManager.getCollisionBounds();
         for (Geometry obs : activeObstacles) {
             if (playerVolume.intersects(obs.getWorldBound())) {
                 return true;
@@ -106,19 +125,15 @@ public class ObstacleManager {
         return false;
     }
 
-    public void cleanup(Vector3f playerLocation) {
+    private void cleanup() {
+        float playerX = playerManager.getLocation().x;
         for (int i = 0; i < activeObstacles.size(); i++) {
             Geometry obstacle = activeObstacles.get(i);
-            
-            if (isPastPlayer(obstacle, playerLocation)) {
+            if (obstacle.getLocalTranslation().x + CLEANUP_THRESHOLD_X < playerX) {
                 obstacle.removeFromParent();
                 activeObstacles.remove(i--);
             }
         }
-    }
-    
-    private boolean isPastPlayer(Geometry obstacle, Vector3f playerLocation) {
-        return obstacle.getLocalTranslation().x + CLEANUP_THRESHOLD_X < playerLocation.x;
     }
 
     public void clear() {

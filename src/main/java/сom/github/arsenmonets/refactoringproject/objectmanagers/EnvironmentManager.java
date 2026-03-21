@@ -34,7 +34,6 @@ package сom.github.arsenmonets.refactoringproject.objectmanagers;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
@@ -52,22 +51,24 @@ public class EnvironmentManager {
 
     private final Geometry floor;
     private final Material floorMaterial;
+    private final PlayerManager playerManager;
 
-    public EnvironmentManager(AssetManager assetManager, Node rootNode) {
+    public EnvironmentManager(AssetManager assetManager, Node rootNode, PlayerManager playerManager) {
         Box floorBox = new Box(FLOOR_X_SIZE, FLOOR_Y_SIZE, FLOOR_Z_SIZE);
         floor = new Geometry("Floor", floorBox);
         
         floor.setLocalTranslation(0, FLOOR_VERTICAL_OFFSET, 0);
 
         floorMaterial = new Material(assetManager, MAT_DEFS);
+		this.playerManager = playerManager;
         floorMaterial.setColor("Color", ColorRGBA.LightGray);
         floor.setMaterial(floorMaterial);
         
         rootNode.attachChild(floor);
     }
 
-    public void update(Vector3f playerLocation) {
-        floor.setLocalTranslation(playerLocation.x, FLOOR_VERTICAL_OFFSET, 0);
+    public void update() {
+        floor.setLocalTranslation(playerManager.getLocation().x, FLOOR_VERTICAL_OFFSET, 0);
     }
 
     public Material getFloorMaterial() {

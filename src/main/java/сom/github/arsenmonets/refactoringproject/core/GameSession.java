@@ -31,6 +31,8 @@
  */
 package сom.github.arsenmonets.refactoringproject.core;
 
+import com.jme3.system.Timer;
+
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
@@ -48,9 +50,11 @@ public class GameSession {
     private float moveSpeed;
     private float nextDifficultyUpdate;
     private final int minObstacles;
+	private Timer timer;
 
-    public GameSession(int minObstacles) {
+    public GameSession(Timer timer, int minObstacles) {
         this.minObstacles = minObstacles;
+        this.timer = timer;
     }
 
     public void reset(float currentTime) {
@@ -60,8 +64,8 @@ public class GameSession {
         nextDifficultyUpdate = currentTime + DIFFICULTY_UPDATE_INTERVAL;
     }
 
-    public void update(float currentTime, float timeStep) {
-        if (currentTime >= nextDifficultyUpdate) {
+    public void update(float timeStep) {
+        if (timer.getTimeInSeconds() >= nextDifficultyUpdate) {
             nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
             spawnAreaScale = Math.max(minObstacles, spawnAreaScale - SPAWN_SCALE_REDUCTION);
         }

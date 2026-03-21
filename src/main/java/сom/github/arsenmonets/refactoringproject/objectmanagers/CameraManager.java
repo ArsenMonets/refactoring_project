@@ -45,13 +45,16 @@ public class CameraManager {
     private static final float SMOOTHING_FACTOR = .99f;
     private final Camera cam;
     private float currentAngle = 0;
+    private final PlayerManager playerManager;
 
-    public CameraManager(Camera cam) {
+    public CameraManager(Camera cam, PlayerManager playerManager) {
         this.cam = cam;
+        this.playerManager = playerManager;
     }
 
-    public void update(Vector3f targetLocation, float timeStep) {
-        cam.setLocation(targetLocation.add(CAM_OFFSET));
+    public void update(float timeStep) {
+        Vector3f targetLocation = playerManager.getLocation();
+		cam.setLocation(targetLocation.add(CAM_OFFSET));
         cam.lookAt(targetLocation, Vector3f.UNIT_Y);
         Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));

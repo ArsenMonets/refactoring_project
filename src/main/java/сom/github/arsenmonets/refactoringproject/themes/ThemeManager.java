@@ -34,6 +34,10 @@ package сom.github.arsenmonets.refactoringproject.themes;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.renderer.Renderer;
+
+import сom.github.arsenmonets.refactoringproject.objectmanagers.EnvironmentManager;
+import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
+
 import com.jme3.material.Material;
 import java.util.ArrayList;
 
@@ -44,8 +48,19 @@ import java.util.ArrayList;
 public class ThemeManager {
     private final ArrayList<GameTheme> themes = new ArrayList<>();
     private int currentThemeIndex = 0;
+	private final Renderer render;
+	public ThemeManager(Renderer render, PlayerManager playerManager, EnvironmentManager enviromentManager) {
+		super();
+		this.render = render;
+		this.playerManager = playerManager;
+		this.enviromentManager = enviromentManager;
+		initDefaultThemes();
+	}
 
-    public void initDefaultThemes() {
+	private final PlayerManager playerManager;
+	private final EnvironmentManager enviromentManager;
+
+    private void initDefaultThemes() {
         themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Gray, false, ColorRGBA.Orange, ColorRGBA.Red, ColorRGBA.Yellow));
         themes.add(new GameTheme(ColorRGBA.Black, ColorRGBA.White, ColorRGBA.Black, true, ColorRGBA.Green));
         themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Gray, ColorRGBA.LightGray, false, ColorRGBA.Black));
@@ -64,9 +79,9 @@ public class ThemeManager {
         floorMat.setColor("Color", t.getFloor());
     }
 
-    public void nextTheme(Renderer renderer, Material playerMat, Material floorMat) {
+    public void nextTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % themes.size();
-        applyTheme(currentThemeIndex, renderer, playerMat, floorMat);
+        applyTheme(currentThemeIndex, render, playerManager.getMaterial(), enviromentManager.getFloorMaterial());
     }
 
     public ColorRGBA getRandomObstacleColor() {

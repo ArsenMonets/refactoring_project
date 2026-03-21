@@ -39,6 +39,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Dome;
 
+import сom.github.arsenmonets.refactoringproject.core.GameSession;
+
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
@@ -46,11 +48,13 @@ import com.jme3.scene.shape.Dome;
 public class PlayerManager {
     private final Geometry playerMesh;
     private final Material material;
+    private final GameSession session;
 
-    public PlayerManager(AssetManager assetManager) {
+    public PlayerManager(AssetManager assetManager, GameSession session) {
         Dome dome = new Dome(Vector3f.ZERO, 10, 100, 1);
         playerMesh = new Geometry("Player", dome);
         material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+		this.session = session;
         material.setColor("Color", ColorRGBA.Red);
         playerMesh.setMaterial(material);
     }
@@ -67,9 +71,9 @@ public class PlayerManager {
         playerMesh.setLocalTranslation(Vector3f.ZERO);
     }
 
-    public void moveForward(float distance) {
-    	if (distance <= 0) return;
-    	playerMesh.move(distance, 0, 0);
+    public void moveForward(float timeStep) {
+    	if (timeStep <= 0) return;
+    	playerMesh.move(timeStep * session.getMoveSpeed(), 0, 0);
     }
 
     public void moveLeft(float offset) {

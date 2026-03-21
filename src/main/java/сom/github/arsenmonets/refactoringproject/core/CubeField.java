@@ -54,7 +54,7 @@ public class CubeField extends SimpleApplication {
 
     private static final float THEME_CHANGE_INTERVAL = 20.0f;
     private static final int INITIAL_OBSTACLES = 10;
-    private static final float TICKS_PER_SECOND = 1000f / 1f;
+    private static final float TICKS_PER_SECOND = 1000f;
 
     private ThemeManager themeManager;
     private ObstacleManager obstacleManager;
@@ -63,12 +63,13 @@ public class CubeField extends SimpleApplication {
     private CameraManager cameraManager;
     private UIManager uiManager;
     private GameSession session;
-    private GameInputManager gameInputManager;
     
     private boolean isGameStarted;
     private float nextThemeChange;
 
-    public static void main(String[] args) { new CubeField().start(); }
+    public static void main(String[] args) {
+        new CubeField().start();
+    }
 
     @Override
     public void simpleInitApp() {
@@ -84,48 +85,45 @@ public class CubeField extends SimpleApplication {
     }
 
     private void initializeComponents() {
-        themeManager = new ThemeManager();
-        themeManager.initDefaultThemes();
+        session = new GameSession(timer, INITIAL_OBSTACLES);
+        playerManager = new PlayerManager(assetManager, session);
+        environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
+        themeManager = new ThemeManager(renderer, playerManager, environmentManager);
+        obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager,
+        		new Geometry("Box", new Box(1, 1, 1)));
+        cameraManager = new CameraManager(cam, playerManager);
+        uiManager = new UIManager(assetManager, guiNode, session);
         
-        obstacleManager = new ObstacleManager(rootNode, assetManager);
-        playerManager = new PlayerManager(assetManager);
-        environmentManager = new EnvironmentManager(assetManager, rootNode);
-        cameraManager = new CameraManager(cam);
-        uiManager = new UIManager(assetManager, guiNode);
-        session = new GameSession(INITIAL_OBSTACLES);
-        
-        gameInputManager = new GameInputManager(this, playerManager, cameraManager, session, uiManager, TICKS_PER_SECOND);
-        gameInputManager.init();
+        new GameInputManager(this, playerManager, cameraManager, session, uiManager, TICKS_PER_SECOND).init();
         
         rootNode.attachChild(playerManager.getSpatial());
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-    	float timeStep = tpf * TICKS_PER_SECOND;
+        float timeStep = tpf * TICKS_PER_SECOND;    
         if (isGameStarted) {
             runGameLogic(timeStep);
-        }
-        environmentManager.update(playerManager.getLocation());
-        cameraManager.update(playerManager.getLocation(), timeStep);
+        } 
+        environmentManager.update();
+        cameraManager.update(timeStep);
         checkThemeUpdate();
     }
 
     private void runGameLogic(float timeStep) {
-        session.update(timer.getTimeInSeconds(), timeStep);
-        playerManager.moveForward(session.getMoveSpeed() * timeStep); 
-        obstacleManager.spawnIfNeeded(playerManager.getLocation(), session.getSpawnAreaScale(), themeManager);
-        obstacleManager.cleanup(playerManager.getLocation());
-        if (obstacleManager.checkCollisions(playerManager.getCollisionBounds())) {
+        session.update(timeStep);    
+        playerManager.moveForward(timeStep);
+        obstacleManager.update();
+        if (obstacleManager.checkCollisions()) {
             handleGameOver();
         }
-        uiManager.updateScore(session.getCurrentScore());
+        uiManager.update();
     }
 
     private void checkThemeUpdate() {
         if (timer.getTimeInSeconds() >= nextThemeChange) {
             nextThemeChange += THEME_CHANGE_INTERVAL;
-            themeManager.nextTheme(renderer, playerManager.getMaterial(), environmentManager.getFloorMaterial());
+            themeManager.nextTheme();
         }
     }
 
@@ -138,16 +136,17 @@ public class CubeField extends SimpleApplication {
     private void gameReset() {
         session.reset(timer.getTimeInSeconds());
         obstacleManager.clear();
-        obstacleManager.setPrototype(new Geometry("Box", new Box(1, 1, 1)));
-        
         themeManager.reset();
-        themeManager.applyTheme(0, renderer, playerManager.getMaterial(), environmentManager.getFloorMaterial());
-        
         playerManager.reset();
         uiManager.showStatus("PRESS ENTER");
         nextThemeChange = timer.getTimeInSeconds() + THEME_CHANGE_INTERVAL;
     }
 
-    public boolean isGameStarted() { return isGameStarted; }
-    public void startGame() { isGameStarted = true; }
+    public boolean isGameStarted() {
+        return isGameStarted;
+    }
+
+    public void startGame() {
+        isGameStarted = true;
+    }
 }
