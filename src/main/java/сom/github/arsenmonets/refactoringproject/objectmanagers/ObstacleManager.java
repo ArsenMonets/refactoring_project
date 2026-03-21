@@ -106,13 +106,19 @@ public class ObstacleManager {
         return false;
     }
 
-    public void cleanup(float playerX) {
+    public void cleanup(Vector3f playerLocation) {
         for (int i = 0; i < activeObstacles.size(); i++) {
-            if (activeObstacles.get(i).getLocalTranslation().getX() + CLEANUP_THRESHOLD_X < playerX) {
-                activeObstacles.get(i).removeFromParent();
+            Geometry obstacle = activeObstacles.get(i);
+            
+            if (isPastPlayer(obstacle, playerLocation)) {
+                obstacle.removeFromParent();
                 activeObstacles.remove(i--);
             }
         }
+    }
+    
+    private boolean isPastPlayer(Geometry obstacle, Vector3f playerLocation) {
+        return obstacle.getLocalTranslation().x + CLEANUP_THRESHOLD_X < playerLocation.x;
     }
 
     public void clear() {

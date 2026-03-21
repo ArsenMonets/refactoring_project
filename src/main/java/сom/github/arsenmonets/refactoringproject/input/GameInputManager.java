@@ -87,10 +87,10 @@ public class GameInputManager implements AnalogListener {
             float moveVal = (session.getMoveSpeed() / 2f) * val * ticksPerSecond; 
             
             if (name.equals(MOVE_LEFT)) {
-                player.move(0, 0, -moveVal);
+                player.moveLeft(moveVal);
                 camera.addTilt(-val * tpf);
             } else if (name.equals(MOVE_RIGHT)) {
-                player.move(0, 0, moveVal);
+            	player.moveRight(moveVal);
                 camera.addTilt(val * tpf);
             }
         }

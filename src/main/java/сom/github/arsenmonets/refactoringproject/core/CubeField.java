@@ -54,6 +54,7 @@ public class CubeField extends SimpleApplication {
 
     private static final float THEME_CHANGE_INTERVAL = 20.0f;
     private static final int INITIAL_OBSTACLES = 10;
+    private static final float TICKS_PER_SECOND = 1000f / 1f;
 
     private ThemeManager themeManager;
     private ObstacleManager obstacleManager;
@@ -66,7 +67,6 @@ public class CubeField extends SimpleApplication {
     
     private boolean isGameStarted;
     private float nextThemeChange;
-    private final float ticksPerSecond = 1000f / 1f;
 
     public static void main(String[] args) { new CubeField().start(); }
 
@@ -94,7 +94,7 @@ public class CubeField extends SimpleApplication {
         uiManager = new UIManager(assetManager, guiNode);
         session = new GameSession(INITIAL_OBSTACLES);
         
-        gameInputManager = new GameInputManager(this, playerManager, cameraManager, session, uiManager, ticksPerSecond);
+        gameInputManager = new GameInputManager(this, playerManager, cameraManager, session, uiManager, TICKS_PER_SECOND);
         gameInputManager.init();
         
         rootNode.attachChild(playerManager.getSpatial());
@@ -102,7 +102,7 @@ public class CubeField extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
-    	float timeStep = tpf * ticksPerSecond;
+    	float timeStep = tpf * TICKS_PER_SECOND;
         if (isGameStarted) {
             runGameLogic(timeStep);
         }
@@ -113,12 +113,13 @@ public class CubeField extends SimpleApplication {
 
     private void runGameLogic(float timeStep) {
         session.update(timer.getTimeInSeconds(), timeStep);
-        playerManager.move(session.getMoveSpeed() * timeStep, 0, 0); 
+        playerManager.moveForward(session.getMoveSpeed() * timeStep); 
         obstacleManager.spawnIfNeeded(playerManager.getLocation(), session.getSpawnAreaScale(), themeManager);
-        obstacleManager.cleanup(playerManager.getLocation().x);
+        obstacleManager.cleanup(playerManager.getLocation());
         if (obstacleManager.checkCollisions(playerManager.getCollisionBounds())) {
             handleGameOver();
         }
+        uiManager.updateScore(session.getCurrentScore());
     }
 
     private void checkThemeUpdate() {
@@ -134,7 +135,7 @@ public class CubeField extends SimpleApplication {
         gameReset();
     }
 
-    public void gameReset() {
+    private void gameReset() {
         session.reset(timer.getTimeInSeconds());
         obstacleManager.clear();
         obstacleManager.setPrototype(new Geometry("Box", new Box(1, 1, 1)));

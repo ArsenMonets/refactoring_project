@@ -67,7 +67,18 @@ public class PlayerManager {
         playerMesh.setLocalTranslation(Vector3f.ZERO);
     }
 
-    public void move(float x, float y, float z) {
-        playerMesh.move(x, y, z);
+    public void moveForward(float distance) {
+    	if (distance <= 0) return;
+    	playerMesh.move(distance, 0, 0);
+    }
+
+    public void moveLeft(float offset) {
+        if (offset <= 0) return; 
+        playerMesh.move(0, 0, -offset); 
+    }
+    
+    public void moveRight(float offset) {
+        if (offset <= 0) return;
+        playerMesh.move(0, 0, offset);
     }
 }
