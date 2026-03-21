@@ -94,7 +94,7 @@ public class CubeField extends SimpleApplication {
         cameraManager = new CameraManager(cam, playerManager);
         uiManager = new UIManager(assetManager, guiNode, session);
         
-        new GameInputManager(this, playerManager, cameraManager, session, uiManager, TICKS_PER_SECOND).init();
+        new GameInputManager(this, playerManager, cameraManager, uiManager, TICKS_PER_SECOND).init();
         
         rootNode.attachChild(playerManager.getSpatial());
     }

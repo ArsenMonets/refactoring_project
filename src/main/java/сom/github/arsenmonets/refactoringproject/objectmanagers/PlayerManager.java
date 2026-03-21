@@ -78,11 +78,11 @@ public class PlayerManager {
 
     public void moveLeft(float offset) {
         if (offset <= 0) return; 
-        playerMesh.move(0, 0, -offset); 
+        playerMesh.move(0, 0, -offset * session.getMoveSpeed()); 
     }
     
     public void moveRight(float offset) {
         if (offset <= 0) return;
-        playerMesh.move(0, 0, offset);
+        playerMesh.move(0, 0, offset * session.getMoveSpeed());
     }
 }

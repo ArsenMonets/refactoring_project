@@ -37,7 +37,6 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 
 import сom.github.arsenmonets.refactoringproject.core.CubeField;
-import сom.github.arsenmonets.refactoringproject.core.GameSession;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.CameraManager;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
 import сom.github.arsenmonets.refactoringproject.ui.UIManager;
@@ -56,16 +55,14 @@ public class GameInputManager implements AnalogListener {
     private final CubeField game;
     private final PlayerManager player;
     private final CameraManager camera;
-    private final GameSession session;
     private final UIManager ui;
     private final float ticksPerSecond;
 
-    public GameInputManager(CubeField game, PlayerManager player, CameraManager camera, GameSession session, UIManager ui, float ticksPerSecond) {
+    public GameInputManager(CubeField game, PlayerManager player, CameraManager camera, UIManager ui, float ticksPerSecond) {
         this.inputManager = game.getInputManager();
         this.game = game;
         this.player = player;
         this.camera = camera;
-        this.session = session;
         this.ui = ui;
         this.ticksPerSecond = ticksPerSecond;
     }
@@ -84,7 +81,7 @@ public class GameInputManager implements AnalogListener {
             game.startGame();
             ui.hideStatus();
         } else if (game.isGameStarted()) {
-            float moveVal = (session.getMoveSpeed() / 2f) * val * ticksPerSecond; 
+            float moveVal = val * ticksPerSecond / 2; 
             
             if (name.equals(MOVE_LEFT)) {
                 player.moveLeft(moveVal);
