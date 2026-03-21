@@ -104,7 +104,7 @@ public class CubeField extends SimpleApplication {
     public void simpleUpdate(float tpf) {
     	float timeStep = tpf * ticksPerSecond;
         if (isGameStarted) {
-            runGameLogic(tpf);
+            runGameLogic(timeStep);
         }
         environmentManager.update(playerManager.getLocation());
         cameraManager.update(playerManager.getLocation(), timeStep);
