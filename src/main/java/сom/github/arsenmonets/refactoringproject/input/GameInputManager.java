@@ -36,9 +36,10 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 
-import сom.github.arsenmonets.refactoringproject.core.CubeField;
+import сom.github.arsenmonets.refactoringproject.core.GameRunner;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.CameraManager;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
+import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
 import сom.github.arsenmonets.refactoringproject.ui.UIManager;
 
 /**
@@ -52,43 +53,41 @@ public class GameInputManager implements AnalogListener {
     private static final String MOVE_RIGHT = "Right";
 
     private final InputManager inputManager;
-    private final CubeField game;
+    private final GameRunner gameRunner;
     private final PlayerManager player;
     private final CameraManager camera;
     private final UIManager ui;
-    private final float ticksPerSecond;
+	private TpfTpsHandler tpfTpshandler;
 
-    public GameInputManager(CubeField game, PlayerManager player, CameraManager camera, UIManager ui, float ticksPerSecond) {
-        this.inputManager = game.getInputManager();
-        this.game = game;
+    public GameInputManager(GameRunner gameRunner, PlayerManager player, CameraManager camera, UIManager ui, TpfTpsHandler tpsTpfhandler, InputManager inputManager) {
+        this.inputManager = inputManager;
+        this.gameRunner = gameRunner;
         this.player = player;
         this.camera = camera;
         this.ui = ui;
-        this.ticksPerSecond = ticksPerSecond;
+        this.tpfTpshandler = tpsTpfhandler;
     }
 
     public void init() {
         inputManager.addMapping(ACTION_START, new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addMapping(MOVE_LEFT, new KeyTrigger(KeyInput.KEY_LEFT));
         inputManager.addMapping(MOVE_RIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
-
         inputManager.addListener(this, ACTION_START, MOVE_LEFT, MOVE_RIGHT);
     }
 
     @Override
     public void onAnalog(String name, float val, float tpf) {
-        if (name.equals(ACTION_START) && !game.isGameStarted()) {
-            game.startGame();
+        if (name.equals(ACTION_START) && !gameRunner.isGameStarted()) {
+            gameRunner.startGame();
             ui.hideStatus();
-        } else if (game.isGameStarted()) {
-            float moveVal = val * ticksPerSecond / 2; 
-            
+        } else if (gameRunner.isGameStarted()) { 
+        	tpfTpshandler.setSidewaysVaues(val, tpf);
             if (name.equals(MOVE_LEFT)) {
-                player.moveLeft(moveVal);
-                camera.addTilt(-val * tpf);
+                player.moveLeft();
+                camera.addLeftTilt();
             } else if (name.equals(MOVE_RIGHT)) {
-            	player.moveRight(moveVal);
-                camera.addTilt(val * tpf);
+            	player.moveRight();
+                camera.addRightTilt();
             }
         }
     }

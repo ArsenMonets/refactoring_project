@@ -32,6 +32,9 @@
 package сom.github.arsenmonets.refactoringproject.objectmanagers;
 
 import com.jme3.renderer.Camera;
+
+import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
+
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -46,22 +49,28 @@ public class CameraManager {
     private final Camera cam;
     private float currentAngle = 0;
     private final PlayerManager playerManager;
+	private final TpfTpsHandler handler;
 
-    public CameraManager(Camera cam, PlayerManager playerManager) {
+    public CameraManager(Camera cam, PlayerManager playerManager, TpfTpsHandler handler) {
         this.cam = cam;
         this.playerManager = playerManager;
+        this.handler = handler;
     }
 
-    public void update(float timeStep) {
+    public void update() {
         Vector3f targetLocation = playerManager.getLocation();
 		cam.setLocation(targetLocation.add(CAM_OFFSET));
         cam.lookAt(targetLocation, Vector3f.UNIT_Y);
         Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
         cam.setRotation(cam.getRotation().mult(rot));
-        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, timeStep);
+        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, handler.getTimeStep());
     }
 
-    public void addTilt(float value) {
-        currentAngle += value;
+    public void addLeftTilt() {
+        currentAngle -= handler.getCameraTiltCoeff();
+    }
+    
+    public void addRightTilt() {
+        currentAngle += handler.getCameraTiltCoeff();
     }
 }

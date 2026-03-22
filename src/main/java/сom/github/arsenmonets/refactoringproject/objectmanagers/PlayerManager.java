@@ -37,9 +37,11 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Dome;
 
 import сom.github.arsenmonets.refactoringproject.core.GameSession;
+import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
@@ -49,17 +51,19 @@ public class PlayerManager {
     private final Geometry playerMesh;
     private final Material material;
     private final GameSession session;
+    private final TpfTpsHandler tpfTpsHandler;
 
-    public PlayerManager(AssetManager assetManager, GameSession session) {
+    public PlayerManager(AssetManager assetManager, Node rootNode, GameSession session, TpfTpsHandler tpfTpsHandler) {
         Dome dome = new Dome(Vector3f.ZERO, 10, 100, 1);
         playerMesh = new Geometry("Player", dome);
         material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		this.session = session;
         material.setColor("Color", ColorRGBA.Red);
         playerMesh.setMaterial(material);
+        rootNode.attachChild(playerMesh);
+        this.tpfTpsHandler = tpfTpsHandler;
     }
 
-    public Geometry getSpatial() { return playerMesh; }
     public Material getMaterial() { return material; }
     public Vector3f getLocation() { return playerMesh.getLocalTranslation(); }
     
@@ -71,18 +75,15 @@ public class PlayerManager {
         playerMesh.setLocalTranslation(Vector3f.ZERO);
     }
 
-    public void moveForward(float timeStep) {
-    	if (timeStep <= 0) return;
-    	playerMesh.move(timeStep * session.getMoveSpeed(), 0, 0);
+    public void moveForward() {
+    	playerMesh.move(tpfTpsHandler.getTimeStep() * session.getMoveSpeed(), 0, 0);
     }
 
-    public void moveLeft(float offset) {
-        if (offset <= 0) return; 
-        playerMesh.move(0, 0, -offset * session.getMoveSpeed()); 
+    public void moveLeft() { 
+        playerMesh.move(0, 0, -tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed()); 
     }
     
-    public void moveRight(float offset) {
-        if (offset <= 0) return;
-        playerMesh.move(0, 0, offset * session.getMoveSpeed());
+    public void moveRight() {
+        playerMesh.move(0, 0, tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed());
     }
 }

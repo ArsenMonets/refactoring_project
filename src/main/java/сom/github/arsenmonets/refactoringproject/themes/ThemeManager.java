@@ -34,11 +34,11 @@ package сom.github.arsenmonets.refactoringproject.themes;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.renderer.Renderer;
+import com.jme3.system.Timer;
 
 import сom.github.arsenmonets.refactoringproject.objectmanagers.EnvironmentManager;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
 
-import com.jme3.material.Material;
 import java.util.ArrayList;
 
 /**
@@ -47,13 +47,19 @@ import java.util.ArrayList;
  */
 public class ThemeManager {
     private final ArrayList<GameTheme> themes = new ArrayList<>();
-    private int currentThemeIndex = 0;
 	private final Renderer render;
-	public ThemeManager(Renderer render, PlayerManager playerManager, EnvironmentManager enviromentManager) {
+	private final Timer timer;
+	private final float themeChangeInterval;
+	private float nextThemeChange = 0;
+    private int currentThemeIndex = 0;
+	
+	public ThemeManager(Renderer render, PlayerManager playerManager, EnvironmentManager enviromentManager, Timer timer, float themeChangeInterval) {
 		super();
 		this.render = render;
 		this.playerManager = playerManager;
 		this.enviromentManager = enviromentManager;
+		this.timer = timer;
+		this.themeChangeInterval = themeChangeInterval;
 		initDefaultThemes();
 	}
 
@@ -72,16 +78,23 @@ public class ThemeManager {
         themes.add(new GameTheme(ColorRGBA.White, ColorRGBA.Red, ColorRGBA.Pink, false, ColorRGBA.Red));
     }
 
-    public void applyTheme(int index, Renderer renderer, Material playerMat, Material floorMat) {
-        GameTheme t = themes.get(index);
-        renderer.setBackgroundColor(t.getBackground());
-        playerMat.setColor("Color", t.getPlayer());
-        floorMat.setColor("Color", t.getFloor());
+    private void applyTheme() {
+        GameTheme t = themes.get(currentThemeIndex);
+        render.setBackgroundColor(t.getBackground());
+        playerManager.getMaterial().setColor("Color", t.getPlayer());
+        enviromentManager.getFloorMaterial().setColor("Color", t.getFloor());
+    }
+    
+    public void checkThemeUpdate() {
+        if (timer.getTimeInSeconds() >= nextThemeChange) {
+            nextThemeChange += themeChangeInterval;
+            this.nextTheme();
+        }
     }
 
-    public void nextTheme() {
+    private void nextTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % themes.size();
-        applyTheme(currentThemeIndex, render, playerManager.getMaterial(), enviromentManager.getFloorMaterial());
+        applyTheme();
     }
 
     public ColorRGBA getRandomObstacleColor() {
@@ -93,5 +106,12 @@ public class ThemeManager {
         return themes.get(currentThemeIndex).isWireframe();
     }
 
-    public void reset() { currentThemeIndex = 0; }
+    public void reset() { 
+    	currentThemeIndex = 0; 
+    	applyTheme(); 
+    }
+    
+    public void startThemeChangingLoop() {
+    	nextThemeChange = timer.getTimeInSeconds() + themeChangeInterval;
+    }
 }

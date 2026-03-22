@@ -41,6 +41,7 @@ import сom.github.arsenmonets.refactoringproject.objectmanagers.EnvironmentMana
 import сom.github.arsenmonets.refactoringproject.objectmanagers.ObstacleManager;
 import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
 import сom.github.arsenmonets.refactoringproject.themes.ThemeManager;
+import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
 import сom.github.arsenmonets.refactoringproject.ui.UIManager;
 
 import java.util.logging.Level;
@@ -64,9 +65,7 @@ public class CubeField extends SimpleApplication {
     private CameraManager cameraManager;
     private UIManager uiManager;
     private GameSession session;
-    
-    private boolean isGameStarted;
-    private float nextThemeChange;
+	private GameRunner gameRunner;
 
     public static void main(String[] args) {
         new CubeField().start();
@@ -76,7 +75,6 @@ public class CubeField extends SimpleApplication {
     public void simpleInitApp() {
         configureEngine();
         initializeComponents();
-        gameReset();
     }
 
     private void configureEngine() {
@@ -86,67 +84,21 @@ public class CubeField extends SimpleApplication {
     }
 
     private void initializeComponents() {
-        session = new GameSession(timer, INITIAL_OBSTACLES);
-        playerManager = new PlayerManager(assetManager, session);
+    	TpfTpsHandler tpfTpsHandler = new TpfTpsHandler(TICKS_PER_SECOND);
+        session = new GameSession(timer, INITIAL_OBSTACLES, tpfTpsHandler);
+        playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
         environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
-        themeManager = new ThemeManager(renderer, playerManager, environmentManager);
+        themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);
         obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager, PROTOTYPE_OBSTACLE);
-        cameraManager = new CameraManager(cam, playerManager);
+        cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
         uiManager = new UIManager(assetManager, guiNode, session);
-        
-        new GameInputManager(this, playerManager, cameraManager, uiManager, TICKS_PER_SECOND).init();
-        
-        rootNode.attachChild(playerManager.getSpatial());
+        gameRunner = new GameRunner(environmentManager, cameraManager, session, playerManager, 
+        		obstacleManager, uiManager, tpfTpsHandler, themeManager);
+        new GameInputManager(gameRunner, playerManager, cameraManager, uiManager, tpfTpsHandler, inputManager).init();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        float timeStep = tpf * TICKS_PER_SECOND;    
-        if (isGameStarted) {
-            runGameLogic(timeStep);
-        } 
-        environmentManager.update();
-        cameraManager.update(timeStep);
-        checkThemeUpdate();
-    }
-
-    private void runGameLogic(float timeStep) {
-        session.update(timeStep);    
-        playerManager.moveForward(timeStep);
-        obstacleManager.update();
-        if (obstacleManager.checkCollisions()) {
-            handleGameOver();
-        }
-        uiManager.update();
-    }
-
-    private void checkThemeUpdate() {
-        if (timer.getTimeInSeconds() >= nextThemeChange) {
-            nextThemeChange += THEME_CHANGE_INTERVAL;
-            themeManager.nextTheme();
-        }
-    }
-
-    private void handleGameOver() {
-        isGameStarted = false;
-        uiManager.showStatus("You lost! Press enter to try again.");
-        gameReset();
-    }
-
-    private void gameReset() {
-        session.reset(timer.getTimeInSeconds());
-        obstacleManager.clear();
-        themeManager.reset();
-        playerManager.reset();
-        uiManager.showStatus("PRESS ENTER");
-        nextThemeChange = timer.getTimeInSeconds() + THEME_CHANGE_INTERVAL;
-    }
-
-    public boolean isGameStarted() {
-        return isGameStarted;
-    }
-
-    public void startGame() {
-        isGameStarted = true;
+    	gameRunner.update(tpf);
     }
 }

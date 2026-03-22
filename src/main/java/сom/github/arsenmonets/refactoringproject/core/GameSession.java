@@ -33,6 +33,8 @@ package сom.github.arsenmonets.refactoringproject.core;
 
 import com.jme3.system.Timer;
 
+import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
+
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
@@ -44,6 +46,8 @@ public class GameSession {
     private static final float SPEED_DIVIDER_CONSTANT = 400f;
     private static final int SPAWN_SCALE_REDUCTION = 5;
     private static final int INITIAL_SPAWN_SCALE = 40;
+    
+    private final TpfTpsHandler tpfTpsHandler;
 
     private float currentScore;
     private int spawnAreaScale;
@@ -52,27 +56,31 @@ public class GameSession {
     private final int minObstacles;
 	private Timer timer;
 
-    public GameSession(Timer timer, int minObstacles) {
-        this.minObstacles = minObstacles;
+    public GameSession(Timer timer, int minObstacles, TpfTpsHandler tpfTpsHandler) {
+        this.tpfTpsHandler = tpfTpsHandler;
+		this.minObstacles = minObstacles;
         this.timer = timer;
     }
 
-    public void reset(float currentTime) {
+    public void reset() {
         currentScore = 0;
         spawnAreaScale = INITIAL_SPAWN_SCALE;
         moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
-        nextDifficultyUpdate = currentTime + DIFFICULTY_UPDATE_INTERVAL;
+    }
+    
+    public void startDifficultyChangeLoop() {
+    	nextDifficultyUpdate = timer.getTimeInSeconds() + DIFFICULTY_UPDATE_INTERVAL;
     }
 
-    public void update(float timeStep) {
+    public void update() {
         if (timer.getTimeInSeconds() >= nextDifficultyUpdate) {
             nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
             spawnAreaScale = Math.max(minObstacles, spawnAreaScale - SPAWN_SCALE_REDUCTION);
         }
         if (moveSpeed < MAX_SPEED_LIMIT) {
-            moveSpeed += ACCELERATION_PER_TICK * timeStep;
+            moveSpeed += ACCELERATION_PER_TICK * tpfTpsHandler.getTimeStep();
         }
-        currentScore += timeStep;
+        currentScore += tpfTpsHandler.getTimeStep();
     }
 
     public float getMoveSpeed() { return moveSpeed; }
