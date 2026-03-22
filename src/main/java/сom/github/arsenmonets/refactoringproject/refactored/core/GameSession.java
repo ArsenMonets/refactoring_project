@@ -32,7 +32,6 @@
 package сom.github.arsenmonets.refactoringproject.refactored.core;
 
 import com.jme3.system.Timer;
-
 import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
 
 /**
@@ -40,45 +39,57 @@ import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandle
  * @author Refactoring: Arsen Monets
  */
 public class GameSession {
-    private static final float DIFFICULTY_UPDATE_INTERVAL = 10.0f;
-    private static final float ACCELERATION_PER_TICK = .000001f;
-    private static final float MAX_SPEED_LIMIT = .1f;
     private static final float SPEED_DIVIDER_CONSTANT = 400f;
-    private static final int SPAWN_SCALE_REDUCTION = 5;
-    private static final int INITIAL_SPAWN_SCALE = 40;
-    private static final int INITIAL_OBSTACLES = 10;
     
+    private final Timer timer;
     private final TpfTpsHandler tpfTpsHandler;
+
+    private final float difficultyInterval;
+    private final float acceleration;
+    private final float maxSpeed;
+    private final int spawnReduction;
+    private final int initialSpawnScale;
+    private final int initialObstacles;
 
     private float currentScore;
     private int spawnAreaScale;
     private float moveSpeed;
     private float nextDifficultyUpdate;
-	private Timer timer;
 
-    public GameSession(Timer timer, TpfTpsHandler tpfTpsHandler) {
-        this.tpfTpsHandler = tpfTpsHandler;
+    public GameSession(Timer timer, TpfTpsHandler tpfTpsHandler, 
+                       float difficultyInterval, float accelerationPerTick, float maxSpeed,
+                       int spawnReduction, int initialSpawnScale, int initialObstacles) {
         this.timer = timer;
+        this.tpfTpsHandler = tpfTpsHandler;
+        this.difficultyInterval = difficultyInterval;
+        this.acceleration = accelerationPerTick;
+        this.maxSpeed = maxSpeed;
+        this.spawnReduction = spawnReduction;
+        this.initialSpawnScale = initialSpawnScale;
+        this.initialObstacles = initialObstacles;
+        reset(); 
     }
 
     public void reset() {
         currentScore = 0;
-        spawnAreaScale = INITIAL_SPAWN_SCALE;
-        moveSpeed = INITIAL_OBSTACLES / SPEED_DIVIDER_CONSTANT;
+        spawnAreaScale = initialSpawnScale;
+        moveSpeed = initialObstacles / SPEED_DIVIDER_CONSTANT;
     }
     
     public void startDifficultyChangeLoop() {
-    	nextDifficultyUpdate = timer.getTimeInSeconds() + DIFFICULTY_UPDATE_INTERVAL;
+        nextDifficultyUpdate = timer.getTimeInSeconds() + difficultyInterval;
     }
 
     public void update() {
         if (timer.getTimeInSeconds() >= nextDifficultyUpdate) {
-            nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
-            spawnAreaScale = Math.max(INITIAL_OBSTACLES, spawnAreaScale - SPAWN_SCALE_REDUCTION);
+            nextDifficultyUpdate += difficultyInterval;
+            spawnAreaScale = Math.max(initialObstacles, spawnAreaScale - spawnReduction);
         }
-        if (moveSpeed < MAX_SPEED_LIMIT) {
-            moveSpeed += ACCELERATION_PER_TICK * tpfTpsHandler.getTimeStep();
+        
+        if (moveSpeed < maxSpeed) {
+            moveSpeed += acceleration * tpfTpsHandler.getTimeStep();
         }
+        
         currentScore += tpfTpsHandler.getTimeStep();
     }
 

@@ -58,6 +58,16 @@ public class CubeField extends SimpleApplication {
     private static final float THEME_CHANGE_INTERVAL = 20.0f;
     private static final float TICKS_PER_SECOND = 1000f;
     private static final Geometry PROTOTYPE_OBSTACLE = new Geometry("Box", new Box(1, 1, 1));
+    private static final float DIFFICULTY_UPDATE_INTERVAL = 10.0f;
+    private static final float ACCELERATION_PER_TICK = .000001f;
+    private static final float MAX_SPEED_LIMIT = .1f;
+    private static final int SPAWN_SCALE_REDUCTION = 5;
+    private static final int INITIAL_SPAWN_SCALE = 40;
+    private static final int INITIAL_OBSTACLES = 10;
+    private static final int SPAWN_MIN_DIST = 30;
+    private static final int SPAWN_MAX_DIST = 90;
+    private static final int SPAWN_Z_SPREAD = 50;
+    private static final float CLEANUP_X_THRESHOLD = 10f;
 
 	private GameRunner gameRunner;
 
@@ -79,11 +89,31 @@ public class CubeField extends SimpleApplication {
 
     private void initializeComponents() {
     	TpfTpsHandler tpfTpsHandler = new TpfTpsHandler(TICKS_PER_SECOND);
-        GameSession session = new GameSession(timer, tpfTpsHandler);
+    	GameSession session = new GameSession(
+                timer, 
+                tpfTpsHandler,
+                DIFFICULTY_UPDATE_INTERVAL,
+                ACCELERATION_PER_TICK,
+                MAX_SPEED_LIMIT,
+                SPAWN_SCALE_REDUCTION,
+                INITIAL_SPAWN_SCALE,
+                INITIAL_OBSTACLES
+            );
         PlayerManager playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
         EnvironmentManager environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
         ThemeManager themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);
-        ObstacleManager obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager, PROTOTYPE_OBSTACLE);
+        ObstacleManager obstacleManager = new ObstacleManager(
+        	    rootNode, 
+        	    assetManager, 
+        	    playerManager, 
+        	    session, 
+        	    themeManager, 
+        	    PROTOTYPE_OBSTACLE,
+        	    SPAWN_MIN_DIST,
+        	    SPAWN_MAX_DIST,
+        	    SPAWN_Z_SPREAD,
+        	    CLEANUP_X_THRESHOLD
+        	);
         CameraManager cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
         UIManager uiManager = new UIManager(assetManager, guiNode, session);
         gameRunner = new GameRunner(environmentManager, cameraManager, session, playerManager, 

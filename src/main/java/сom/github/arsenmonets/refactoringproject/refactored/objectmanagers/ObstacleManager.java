@@ -50,29 +50,34 @@ import java.util.List;
  * @author Refactoring: Arsen Monets
  */
 public class ObstacleManager {
-    private static final int SPAWN_MIN_DISTANCE_X = 30;
-    private static final int SPAWN_MAX_DISTANCE_X = 90;
-    private static final int SPAWN_Z_SPREAD = 50;
-    private static final float CLEANUP_THRESHOLD_X = 10f;
-    private static final String MATERIAL_PATH = "Common/MatDefs/Misc/Unshaded.j3md";
-
     private final List<Geometry> activeObstacles = new ArrayList<>();
     private final Node rootNode;
     private final AssetManager assetManager;
     private final GameSession session;
     private final PlayerManager playerManager;
     private final ThemeManager themeManager;
-    
     private final Geometry prototype;
 
+    private final int minDistanceX;
+    private final int maxDistanceX;
+    private final int zSpread;
+    private final float cleanupThreshold;
+    private final String MATERIAL_PATH = "Common/MatDefs/Misc/Unshaded.j3md";
+
     public ObstacleManager(Node rootNode, AssetManager assetManager, PlayerManager playerManager, 
-                           GameSession session, ThemeManager themeManager, Geometry prototype) {
+                           GameSession session, ThemeManager themeManager, Geometry prototype,
+                           int minDistanceX, int maxDistanceX, int zSpread, 
+                           float cleanupThreshold) {
         this.rootNode = rootNode;
         this.assetManager = assetManager;
         this.playerManager = playerManager;
         this.session = session;
         this.themeManager = themeManager;
-		this.prototype = prototype;
+        this.prototype = prototype;
+        this.minDistanceX = minDistanceX;
+        this.maxDistanceX = maxDistanceX;
+        this.zSpread = zSpread;
+        this.cleanupThreshold = cleanupThreshold;
     }
 
     public void update() {
@@ -90,29 +95,35 @@ public class ObstacleManager {
         if (prototype == null) return;
 
         Geometry cube = prototype.clone();
+        cube.setLocalTranslation(calculateRandomPosition());
+        cube.setMaterial(createThemeMaterial());
+
+        rootNode.attachChild(cube);
+        activeObstacles.add(cube);
+    }
+
+    private Vector3f calculateRandomPosition() {
         int scale = session.getSpawnAreaScale();
         Vector3f playerPos = playerManager.getLocation();
 
-        float minX = playerPos.x + scale + SPAWN_MIN_DISTANCE_X;
-        float maxX = playerPos.x + scale + SPAWN_MAX_DISTANCE_X;
-        
-        float minZ = playerPos.z - scale - SPAWN_Z_SPREAD;
-        float maxZ = playerPos.z + scale + SPAWN_Z_SPREAD;
+        float minX = playerPos.x + scale + minDistanceX;
+        float maxX = playerPos.x + scale + maxDistanceX;
+        float minZ = playerPos.z - scale - zSpread;
+        float maxZ = playerPos.z + scale + zSpread;
 
         float x = FastMath.nextRandomFloat() * (maxX - minX) + minX;
         float z = FastMath.nextRandomFloat() * (maxZ - minZ) + minZ;
-        
-        cube.setLocalTranslation(x, 0, z);
 
+        return new Vector3f(x, 0, z);
+    }
+
+    private Material createThemeMaterial() {
         Material mat = new Material(assetManager, MATERIAL_PATH);
         if (themeManager.isCurrentThemeWireframe()) {
             mat.getAdditionalRenderState().setWireframe(true);
         }
         mat.setColor("Color", themeManager.getRandomObstacleColor());
-        cube.setMaterial(mat);
-
-        rootNode.attachChild(cube);
-        activeObstacles.add(cube);
+        return mat;
     }
 
     public boolean checkCollisions() {
@@ -127,13 +138,13 @@ public class ObstacleManager {
 
     private void cleanup() {
         float playerX = playerManager.getLocation().x;
-        for (int i = 0; i < activeObstacles.size(); i++) {
-            Geometry obstacle = activeObstacles.get(i);
-            if (obstacle.getLocalTranslation().x + CLEANUP_THRESHOLD_X < playerX) {
+        activeObstacles.removeIf(obstacle -> {
+            if (obstacle.getLocalTranslation().x + cleanupThreshold < playerX) {
                 obstacle.removeFromParent();
-                activeObstacles.remove(i--);
+                return true;
             }
-        }
+            return false;
+        });
     }
 
     public void clear() {
