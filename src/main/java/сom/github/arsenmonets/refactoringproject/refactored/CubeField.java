@@ -56,7 +56,6 @@ import java.util.logging.Logger;
 public class CubeField extends SimpleApplication {
 
     private static final float THEME_CHANGE_INTERVAL = 20.0f;
-    private static final int INITIAL_OBSTACLES = 10;
     private static final float TICKS_PER_SECOND = 1000f;
     private static final Geometry PROTOTYPE_OBSTACLE = new Geometry("Box", new Box(1, 1, 1));
 
@@ -80,7 +79,7 @@ public class CubeField extends SimpleApplication {
 
     private void initializeComponents() {
     	TpfTpsHandler tpfTpsHandler = new TpfTpsHandler(TICKS_PER_SECOND);
-        GameSession session = new GameSession(timer, INITIAL_OBSTACLES, tpfTpsHandler);
+        GameSession session = new GameSession(timer, tpfTpsHandler);
         PlayerManager playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
         EnvironmentManager environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
         ThemeManager themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);

@@ -46,6 +46,7 @@ public class GameSession {
     private static final float SPEED_DIVIDER_CONSTANT = 400f;
     private static final int SPAWN_SCALE_REDUCTION = 5;
     private static final int INITIAL_SPAWN_SCALE = 40;
+    private static final int INITIAL_OBSTACLES = 10;
     
     private final TpfTpsHandler tpfTpsHandler;
 
@@ -53,19 +54,17 @@ public class GameSession {
     private int spawnAreaScale;
     private float moveSpeed;
     private float nextDifficultyUpdate;
-    private final int minObstacles;
 	private Timer timer;
 
-    public GameSession(Timer timer, int minObstacles, TpfTpsHandler tpfTpsHandler) {
+    public GameSession(Timer timer, TpfTpsHandler tpfTpsHandler) {
         this.tpfTpsHandler = tpfTpsHandler;
-		this.minObstacles = minObstacles;
         this.timer = timer;
     }
 
     public void reset() {
         currentScore = 0;
         spawnAreaScale = INITIAL_SPAWN_SCALE;
-        moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
+        moveSpeed = INITIAL_OBSTACLES / SPEED_DIVIDER_CONSTANT;
     }
     
     public void startDifficultyChangeLoop() {
@@ -75,7 +74,7 @@ public class GameSession {
     public void update() {
         if (timer.getTimeInSeconds() >= nextDifficultyUpdate) {
             nextDifficultyUpdate += DIFFICULTY_UPDATE_INTERVAL;
-            spawnAreaScale = Math.max(minObstacles, spawnAreaScale - SPAWN_SCALE_REDUCTION);
+            spawnAreaScale = Math.max(INITIAL_OBSTACLES, spawnAreaScale - SPAWN_SCALE_REDUCTION);
         }
         if (moveSpeed < MAX_SPEED_LIMIT) {
             moveSpeed += ACCELERATION_PER_TICK * tpfTpsHandler.getTimeStep();
