@@ -62,7 +62,7 @@ public class ObstacleManager {
     private final int maxDistanceX;
     private final int zSpread;
     private final float cleanupThreshold;
-    private final String MATERIAL_PATH = "Common/MatDefs/Misc/Unshaded.j3md";
+    private static final String MATERIAL_PATH = "Common/MatDefs/Misc/Unshaded.j3md";
 
     public ObstacleManager(Node rootNode, AssetManager assetManager, PlayerManager playerManager, 
                            GameSession session, ThemeManager themeManager, Geometry prototype,
