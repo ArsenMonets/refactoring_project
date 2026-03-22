@@ -29,61 +29,56 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.objectmanagers;
+package сom.github.arsenmonets.refactoringproject.refactored.ui;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.bounding.BoundingVolume;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Dome;
 
-import сom.github.arsenmonets.refactoringproject.core.GameSession;
-import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
+import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
-public class PlayerManager {
-    private final Geometry playerMesh;
-    private final Material material;
+public class UIManager {
+    private static final String FONT_PATH = "Interface/Fonts/Default.fnt";
+    private final BitmapText scoreText;
+    private final BitmapText statusText;
+    private final Node guiNode;
     private final GameSession session;
-    private final TpfTpsHandler tpfTpsHandler;
 
-    public PlayerManager(AssetManager assetManager, Node rootNode, GameSession session, TpfTpsHandler tpfTpsHandler) {
-        Dome dome = new Dome(Vector3f.ZERO, 10, 100, 1);
-        playerMesh = new Geometry("Player", dome);
-        material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-		this.session = session;
-        material.setColor("Color", ColorRGBA.Red);
-        playerMesh.setMaterial(material);
-        rootNode.attachChild(playerMesh);
-        this.tpfTpsHandler = tpfTpsHandler;
+    public UIManager(AssetManager assetManager, Node guiNode, GameSession session) {
+        this.guiNode = guiNode;
+        this.session = session;
+        BitmapFont font = assetManager.loadFont(FONT_PATH);
+        
+        scoreText = createText(font, 0, 2);
+        statusText = createText(font, 0, 5);
+        
+        guiNode.attachChild(scoreText);
     }
 
-    public Material getMaterial() { return material; }
-    public Vector3f getLocation() { return playerMesh.getLocalTranslation(); }
-    
-    public BoundingVolume getCollisionBounds() {
-        return playerMesh.getWorldBound();
+    private BitmapText createText(BitmapFont font, float x, float y) {
+        BitmapText txt = new BitmapText(font);
+        txt.setSize(font.getCharSet().getRenderedSize());
+        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, 0);
+        return txt;
     }
 
-    public void reset() {
-        playerMesh.setLocalTranslation(Vector3f.ZERO);
+    public void update() {
+        scoreText.setText("Current Score: " + session.getCurrentScore());
     }
 
-    public void moveForward() {
-    	playerMesh.move(tpfTpsHandler.getTimeStep() * session.getMoveSpeed(), 0, 0);
+    public void showStatus(String text) {
+        statusText.setText(text);
+        if (!guiNode.hasChild(statusText)) {
+            guiNode.attachChild(statusText);
+        }
     }
 
-    public void moveLeft() { 
-        playerMesh.move(0, 0, -tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed()); 
-    }
-    
-    public void moveRight() {
-        playerMesh.move(0, 0, tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed());
+    public void hideStatus() {
+        statusText.removeFromParent();
     }
 }

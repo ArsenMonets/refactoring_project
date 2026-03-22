@@ -29,20 +29,22 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.core;
+package сom.github.arsenmonets.refactoringproject.refactored;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 
-import сom.github.arsenmonets.refactoringproject.input.GameInputManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.CameraManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.EnvironmentManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.ObstacleManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.ui.UIManager;
+import сom.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
+import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import сom.github.arsenmonets.refactoringproject.refactored.input.GameInputManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
+import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

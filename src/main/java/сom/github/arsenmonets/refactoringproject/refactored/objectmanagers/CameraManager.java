@@ -29,49 +29,48 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.objectmanagers;
+package сom.github.arsenmonets.refactoringproject.refactored.objectmanagers;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.shape.Box;
+import com.jme3.renderer.Camera;
+
+import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
-public class EnvironmentManager {
-    private static final float FLOOR_X_SIZE = 100f;
-    private static final float FLOOR_Y_SIZE = 0f;
-    private static final float FLOOR_Z_SIZE = 100f;
-    private static final float FLOOR_VERTICAL_OFFSET = -1f;
-    private static final String MAT_DEFS = "Common/MatDefs/Misc/Unshaded.j3md";
-
-    private final Geometry floor;
-    private final Material floorMaterial;
+public class CameraManager {
+    private static final Vector3f CAM_OFFSET = new Vector3f(-8f, 2f, 0);
+    private static final float SMOOTHING_FACTOR = .99f;
+    private final Camera cam;
+    private float currentAngle = 0;
     private final PlayerManager playerManager;
+	private final TpfTpsHandler handler;
 
-    public EnvironmentManager(AssetManager assetManager, Node rootNode, PlayerManager playerManager) {
-        Box floorBox = new Box(FLOOR_X_SIZE, FLOOR_Y_SIZE, FLOOR_Z_SIZE);
-        floor = new Geometry("Floor", floorBox);
-        
-        floor.setLocalTranslation(0, FLOOR_VERTICAL_OFFSET, 0);
-
-        floorMaterial = new Material(assetManager, MAT_DEFS);
-		this.playerManager = playerManager;
-        floorMaterial.setColor("Color", ColorRGBA.LightGray);
-        floor.setMaterial(floorMaterial);
-        
-        rootNode.attachChild(floor);
+    public CameraManager(Camera cam, PlayerManager playerManager, TpfTpsHandler handler) {
+        this.cam = cam;
+        this.playerManager = playerManager;
+        this.handler = handler;
     }
 
     public void update() {
-        floor.setLocalTranslation(playerManager.getLocation().x, FLOOR_VERTICAL_OFFSET, 0);
+        Vector3f targetLocation = playerManager.getLocation();
+		cam.setLocation(targetLocation.add(CAM_OFFSET));
+        cam.lookAt(targetLocation, Vector3f.UNIT_Y);
+        Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
+        cam.setRotation(cam.getRotation().mult(rot));
+        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, handler.getTimeStep());
     }
 
-    public Material getFloorMaterial() {
-        return floorMaterial;
+    public void addLeftTilt() {
+        currentAngle -= handler.getCameraTiltCoeff();
+    }
+    
+    public void addRightTilt() {
+        currentAngle += handler.getCameraTiltCoeff();
     }
 }

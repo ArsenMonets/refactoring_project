@@ -1,12 +1,12 @@
-package сom.github.arsenmonets.refactoringproject.core;
+package сom.github.arsenmonets.refactoringproject.refactored.core;
 
-import сom.github.arsenmonets.refactoringproject.objectmanagers.CameraManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.EnvironmentManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.ObstacleManager;
-import сom.github.arsenmonets.refactoringproject.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.ui.UIManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
+import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
+import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 public class GameRunner {
 	private final EnvironmentManager environmentManager;

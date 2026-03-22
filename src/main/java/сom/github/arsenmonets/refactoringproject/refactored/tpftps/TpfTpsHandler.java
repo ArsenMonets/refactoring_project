@@ -1,4 +1,4 @@
-package сom.github.arsenmonets.refactoringproject.tpftps;
+package сom.github.arsenmonets.refactoringproject.refactored.tpftps;
 
 public class TpfTpsHandler {
 	private final float ticksPerSecond;

@@ -29,11 +29,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.core;
+package сom.github.arsenmonets.refactoringproject.refactored.core;
 
 import com.jme3.system.Timer;
 
-import сom.github.arsenmonets.refactoringproject.tpftps.TpfTpsHandler;
+import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
