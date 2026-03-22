@@ -49,7 +49,7 @@ public class GameSession {
     private final float maxSpeed;
     private final int spawnReduction;
     private final int initialSpawnScale;
-    private final int initialObstacles;
+    private final int minObstacles;
 
     private float currentScore;
     private int spawnAreaScale;
@@ -58,7 +58,7 @@ public class GameSession {
 
     public GameSession(Timer timer, TpfTpsHandler tpfTpsHandler, 
                        float difficultyInterval, float accelerationPerTick, float maxSpeed,
-                       int spawnReduction, int initialSpawnScale, int initialObstacles) {
+                       int spawnReduction, int initialSpawnScale, int minObstacles) {
         this.timer = timer;
         this.tpfTpsHandler = tpfTpsHandler;
         this.difficultyInterval = difficultyInterval;
@@ -66,14 +66,14 @@ public class GameSession {
         this.maxSpeed = maxSpeed;
         this.spawnReduction = spawnReduction;
         this.initialSpawnScale = initialSpawnScale;
-        this.initialObstacles = initialObstacles;
+        this.minObstacles = minObstacles;
         reset(); 
     }
 
     public void reset() {
         currentScore = 0;
         spawnAreaScale = initialSpawnScale;
-        moveSpeed = initialObstacles / SPEED_DIVIDER_CONSTANT;
+        moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
     }
     
     public void startDifficultyChangeLoop() {
@@ -83,11 +83,11 @@ public class GameSession {
     public void update() {
         if (timer.getTimeInSeconds() >= nextDifficultyUpdate) {
             nextDifficultyUpdate += difficultyInterval;
-            spawnAreaScale = Math.max(initialObstacles, spawnAreaScale - spawnReduction);
+            spawnAreaScale = Math.max(minObstacles, spawnAreaScale - spawnReduction);
         }
         
         if (moveSpeed < maxSpeed) {
-            moveSpeed += acceleration * tpfTpsHandler.getTimeStep();
+            moveSpeed = Math.min(maxSpeed, moveSpeed + acceleration * tpfTpsHandler.getTimeStep());
         }
         
         currentScore += tpfTpsHandler.getTimeStep();
