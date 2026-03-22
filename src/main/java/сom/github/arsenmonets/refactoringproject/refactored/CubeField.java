@@ -66,8 +66,8 @@ public class CubeField extends SimpleApplication {
     private static final int INITIAL_OBSTACLES = 10;
     private static final int SPAWN_MIN_DIST = 30;
     private static final int SPAWN_MAX_DIST = 90;
-    private static final int SPAWN_Z_SPREAD = 50;
-    private static final float CLEANUP_X_THRESHOLD = 10f;
+    private static final int SPAWN_SPREAD = 50;
+    private static final float CLEANUP_THRESHOLD = 10f;
 
 	private GameRunner gameRunner;
 
@@ -111,8 +111,8 @@ public class CubeField extends SimpleApplication {
         	    PROTOTYPE_OBSTACLE,
         	    SPAWN_MIN_DIST,
         	    SPAWN_MAX_DIST,
-        	    SPAWN_Z_SPREAD,
-        	    CLEANUP_X_THRESHOLD
+        	    SPAWN_SPREAD,
+        	    CLEANUP_THRESHOLD
         	);
         CameraManager cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
         UIManager uiManager = new UIManager(assetManager, guiNode, session);
