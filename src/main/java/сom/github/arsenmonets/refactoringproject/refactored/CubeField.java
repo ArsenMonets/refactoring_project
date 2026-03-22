@@ -60,13 +60,6 @@ public class CubeField extends SimpleApplication {
     private static final float TICKS_PER_SECOND = 1000f;
     private static final Geometry PROTOTYPE_OBSTACLE = new Geometry("Box", new Box(1, 1, 1));
 
-    private ThemeManager themeManager;
-    private ObstacleManager obstacleManager;
-    private PlayerManager playerManager;
-    private EnvironmentManager environmentManager;
-    private CameraManager cameraManager;
-    private UIManager uiManager;
-    private GameSession session;
 	private GameRunner gameRunner;
 
     public static void main(String[] args) {
@@ -87,13 +80,13 @@ public class CubeField extends SimpleApplication {
 
     private void initializeComponents() {
     	TpfTpsHandler tpfTpsHandler = new TpfTpsHandler(TICKS_PER_SECOND);
-        session = new GameSession(timer, INITIAL_OBSTACLES, tpfTpsHandler);
-        playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
-        environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
-        themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);
-        obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager, PROTOTYPE_OBSTACLE);
-        cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
-        uiManager = new UIManager(assetManager, guiNode, session);
+        GameSession session = new GameSession(timer, INITIAL_OBSTACLES, tpfTpsHandler);
+        PlayerManager playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
+        EnvironmentManager environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
+        ThemeManager themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);
+        ObstacleManager obstacleManager = new ObstacleManager(rootNode, assetManager, playerManager, session, themeManager, PROTOTYPE_OBSTACLE);
+        CameraManager cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
+        UIManager uiManager = new UIManager(assetManager, guiNode, session);
         gameRunner = new GameRunner(environmentManager, cameraManager, session, playerManager, 
         		obstacleManager, uiManager, tpfTpsHandler, themeManager);
         new GameInputManager(gameRunner, playerManager, cameraManager, uiManager, tpfTpsHandler, inputManager).init();
