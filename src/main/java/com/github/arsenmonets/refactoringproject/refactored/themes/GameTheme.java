@@ -29,56 +29,32 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.ui;
+package com.github.arsenmonets.refactoringproject.refactored.themes;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.font.BitmapFont;
-import com.jme3.font.BitmapText;
-import com.jme3.scene.Node;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.jme3.math.ColorRGBA;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
-public class UIManager {
-    private static final String FONT_PATH = "Interface/Fonts/Default.fnt";
-    private final BitmapText scoreText;
-    private final BitmapText statusText;
-    private final Node guiNode;
-    private final GameSession session;
+public class GameTheme {
+    private final ColorRGBA background;
+    private final ColorRGBA player;
+    private final ColorRGBA floor;
+    private final ColorRGBA[] obstacles;
+    private final boolean wireframe;
 
-    public UIManager(AssetManager assetManager, Node guiNode, GameSession session) {
-        this.guiNode = guiNode;
-        this.session = session;
-        BitmapFont font = assetManager.loadFont(FONT_PATH);
-        
-        scoreText = createText(font, 0, 2);
-        statusText = createText(font, 0, 5);
-        
-        guiNode.attachChild(scoreText);
+    public GameTheme(ColorRGBA bg, ColorRGBA p, ColorRGBA f, boolean wf, ColorRGBA... obs) {
+        this.background = bg;
+        this.player = p;
+        this.floor = f;
+        this.wireframe = wf;
+        this.obstacles = obs;
     }
 
-    private BitmapText createText(BitmapFont font, float x, float y) {
-        BitmapText txt = new BitmapText(font);
-        txt.setSize(font.getCharSet().getRenderedSize());
-        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, 0);
-        return txt;
-    }
-
-    public void update() {
-        scoreText.setText("Current Score: " + session.getCurrentScore());
-    }
-
-    public void showStatus(String text) {
-        statusText.setText(text);
-        if (!guiNode.hasChild(statusText)) {
-            guiNode.attachChild(statusText);
-        }
-    }
-
-    public void hideStatus() {
-        statusText.removeFromParent();
-    }
+    public ColorRGBA getBackground() { return background; }
+    public ColorRGBA getPlayer() { return player; }
+    public ColorRGBA getFloor() { return floor; }
+    public ColorRGBA[] getObstacles() { return obstacles; }
+    public boolean isWireframe() { return wireframe; }
 }

@@ -35,6 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
+import com.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.*;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
+import com.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import com.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacterSet;
 import com.jme3.font.BitmapFont;
@@ -46,13 +52,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.*;
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 import java.lang.reflect.Field;
 

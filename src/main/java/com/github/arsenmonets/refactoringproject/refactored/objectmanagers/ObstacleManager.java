@@ -29,8 +29,10 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.objectmanagers;
+package com.github.arsenmonets.refactoringproject.refactored.objectmanagers;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.bounding.BoundingVolume;
 import com.jme3.material.Material;
@@ -38,9 +40,6 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
 
 import java.util.ArrayList;
 import java.util.List;

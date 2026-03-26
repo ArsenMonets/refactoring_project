@@ -38,6 +38,9 @@ package com.github.arsenmonets.refactoringproject;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.Renderer;
@@ -48,10 +51,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
 
 @ExtendWith(MockitoExtension.class)
 class ThemeTest {

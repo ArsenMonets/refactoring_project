@@ -29,15 +29,15 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.core;
+package com.github.arsenmonets.refactoringproject.refactored.core;
 
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
+import com.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import com.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 /**
  * @author Original: Kyle "bonechilla" Williams

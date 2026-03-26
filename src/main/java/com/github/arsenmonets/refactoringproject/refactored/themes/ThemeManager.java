@@ -29,15 +29,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.themes;
+package com.github.arsenmonets.refactoringproject.refactored.themes;
 
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.renderer.Renderer;
 import com.jme3.system.Timer;
-
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.EnvironmentManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
 
 import java.util.ArrayList;
 

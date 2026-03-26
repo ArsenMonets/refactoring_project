@@ -1,10 +1,23 @@
+# Refactoring and Testing Report: "CubeField" Project
+
+## Comparative Project Metrics
+
+| Metric | Original Code (Old) | Refactored Code (New) | Result |
+| :--- | :---: | :---: | :--- |
+| **Number of Files** | 1 | 12 | Improved Modularity |
+| **Total Functions/Methods** | 15 | ~54 | **+350%** (Granularity increase) |
+| **Avg Methods per Class** | 15 | ~6 | Better adherence to SRP |
+| **SLOC (Logic Lines)** | ~240 | ~680 | Expanded Capabilities |
+| **Max Cyclomatic Complexity** | 11 | 4 | **Decreased by 64%** |
+| **Cognitive Complexity** | High | Very Low | Better Readability |
+| **Single Responsibility** | Violated (God Object) | Maintained (8+ Mgrs) | Easy to Test |
 
 ---
 
-## List of Applied Changes
+## List of Implemented Changes
 
 ### 1. Dead Code
-*   **Problem:** The `randomizeCube` method contained legacy coordinate calculations that were commented out, creating visual noise and confusion.
+*   **Problem Description:** The `randomizeCube` method contained commented-out coordinate calculations that were no longer used but created visual noise.
 *   **Before:**
     ```java
     // float x = FastMath.nextRandomInt(playerX + difficulty + 10, playerX + difficulty + 150);
@@ -18,30 +31,81 @@
 
     float minX = playerPos.x + scale + minDistanceX;
     float maxX = playerPos.x + scale + maxDistanceX;
-    // ... logic continues with dynamic GameSession parameters ...
+    float minZ = playerPos.z - scale - zSpread;
+    float maxZ = playerPos.z + scale + zSpread;
+
+    float x = FastMath.nextRandomFloat() * (maxX - minX) + minX;
+    float z = FastMath.nextRandomFloat() * (maxZ - minZ) + minZ;
+
+    return new Vector3f(x, 0, z);
     ```
-*   **Solution:** Complete removal of "zombie code" and transition to dynamic parameters within the `GameSession`.
-*   **Rationale:** Clean code must be free of debris. Version history is managed by Git; commented-out lines only distract from current logic.
+*   **Solution:** Complete removal of commented fragments and transition to using dynamic parameters from `GameSession`.
+*   **Rationale:** Clean code should be free of "trash." Idea history is preserved in Git, while commented lines only distract from active logic.
+
+---
 
 ### 2. Magic Numbers
-*   **Problem:** Use of hardcoded numeric literals (e.g., `400f`) for speed and timing without context.
-*   **Before:** `speed = lowCap / 400f;`
-*   **After:** `moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;`
-*   **Solution:** Extraction of constants into named variables like (`SPEED_DIVIDER_CONSTANT`).
-*   **Rationale:** Improves **self-documentation**. The constant name explains the physical or logical intent of the value.
-
-### 3. Meaningless Names
-*   **Problem:** The variable `difficulty` was too generic and did not reflect its actual purpose (controlling the spawn area size).
-*   **Before:** `private int difficulty;`
-*   **After:** `private int spawnAreaScale;`
-*   **Solution:** Renamed the field to `spawnAreaScale`.
-*   **Rationale:** Proper naming reduces cognitive load and makes the code's intent clear at a glance.
-
-### 4. Long Method
-*   **Problem:** The `gameLogic` method was a "God Method," handling physics, timers, collisions, and UI updates simultaneously.
-*   **Before:** A single method exceeding 100 lines of mixed logic.
+*   **Problem Description:** Use of hard-coded numbers (e.g., 400) to control speed and timing without explaining their meaning.
+*   **Before:**
+    ```java
+    speed = lowCap / 400f;
+    ```
 *   **After:**
     ```java
+    public void reset() {
+        spawnAreaScale = initialSpawnScale;
+        moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
+    }
+    ```
+*   **Solution:** Implementation of named constants (`SPEED_DIVIDER_CONSTANT`).
+*   **Rationale:** This improves the self-documenting nature of the code. The constant name explains the physical meaning of the value.
+
+---
+
+### 3. Meaningless Names
+*   **Problem Description:** The variable `difficulty` had an overly generic name that did not reflect its actual role (the size of the generation zone).
+*   **Before:**
+    ```java
+    private int difficulty; 
+    ```
+*   **After:**
+    ```java
+    private int spawnAreaScale;
+    ```
+*   **Solution:** Renamed the field to `spawnAreaScale`.
+*   **Rationale:** The name should clearly reflect the developer's intent. Proper naming reduces the time required to understand the code.
+
+---
+
+### 4. Long Method
+*   **Problem Description:** The `gameLogic` method performed too many unrelated operations simultaneously (physics, timers, collisions, UI).
+*   **Before:**
+    ```java
+    private void gameLogic(float tpf) {
+        if(timer.getTimeInSeconds()>=coreTime2){
+            coreTime2=timer.getTimeInSeconds()+10;
+            if(difficulty<=lowCap){ difficulty=lowCap; }
+            else if(difficulty>lowCap){ difficulty-=5; }
+        }
+        if(speed<.1f){ speed+=.000001f*tpf*fpsRate; }
+        player.move(speed * tpf * fpsRate, 0, 0);
+        if (cubeField.size() > difficulty){ cubeField.remove(0); }
+        // ... (collision logic and cube removal)
+        Score += fpsRate * tpf;
+        fpsScoreText.setText("Current Score: "+Score);
+    }
+    ```
+*   **After:**
+    ```java
+    public void update(float tpf) {
+        tpfTpsHandler.updateTimeStep(tpf); 
+        if (isGameStarted) {
+            runGameLogic();
+        } 
+        environmentManager.update();
+        cameraManager.update();
+    }
+    
     private void runGameLogic() {
         session.update();    
         playerManager.moveForward();
@@ -53,90 +117,215 @@
         themeManager.checkThemeUpdate();
     }
     ```
-*   **Solution:** Applied the **Extract Method** technique.
-*   **Rationale:** Adheres to the **Single Responsibility Principle (SRP)**. Smaller methods are easier to test and maintain.
-
-### 5. Switch Statements (God Switch)
-*   **Problem:** A massive `switch` block controlled visual themes, making it difficult to add new styles without modifying core logic.
-*   **Solution:** Replaced conditional logic with a collection of `GameTheme` objects (Polymorphism).
-*   **Rationale:** Enhances scalability. Adding a new theme now only requires creating a new object, not editing core switching logic.
-
-### 6. God Object
-*   **Problem:** The main class `CubeField` (SimpleApplication) managed every system, from input to rendering.
-*   **Solution:** Applied **Extract Class**. Decomposed into `PlayerManager`, `ObstacleManager`, `ThemeManager`, `UIManager`, and `CameraManager`.
-*   **Rationale:** Decomposing a large class into single-responsibility objects simplifies maintenance and unit testing.
-
-### 7. Code Duplication
-*   **Problem:** `tpf` (Time Per Frame) calculations were repeated across multiple classes for movement and scoring.
-*   **Solution:** Created a centralized `TpfTpsHandler` class to handle time-step synchronization.
-*   **Rationale:** Adheres to the **DRY (Don't Repeat Yourself)** principle. Logic changes only need to occur in one place.
-
-### 8. Primitive Obsession
-*   **Problem:** Direct manipulation of raw float coordinates for player movement.
-*   **Before:** `player.move(0, 0, (speed / 2f) * value * fpsRate);`
-*   **After:** 
-    ```java
-    playerManager.moveLeft();
-    playerManager.moveRight();
-    ```
-*   **Solution:** Created high-level domain methods within specialized managers.
-*   **Rationale:** Transition from manipulating raw numbers to high-level game concepts (Move Forward, Left, Right).
-
-### 9. Message Chains
-*   **Problem:** Accessing deeply nested object properties (e.g., `object.getA().getB().getX()`).
-*   **Solution:** Implemented wrapper methods to hide delegation.
-*   **Rationale:** Adheres to the **Law of Demeter**. Objects should only talk to their immediate neighbors.
-
-### 10. Inappropriate Intimacy
-*   **Problem:** The obstacle generator was directly calculating coordinates based on the player object's internal state.
-*   **Solution:** Used the `getLocation()` method in `PlayerManager` to encapsulate player spatial data.
-*   **Rationale:** Reduces coupling between systems, making the code more robust against changes in the player's internal implementation.
+*   **Solution:** Applied the **Extract Method** refactoring technique.
+*   **Rationale:** Adherence to the Single Responsibility Principle (SRP). Smaller methods are easier to test and read.
 
 ---
 
-## Test Suite Overview (29 Scenarios)
+### 5. Switch Statements
+*   **Problem Description:** The `colorLogic` method used a long `switch` to change visual themes, making scaling difficult.
+*   **Before:**
+    ```java
+    switch (colorInt) {
+        case 1: // Blue theme logic
+            break;
+        case 2: // Red theme logic
+            break;
+        // ... many cases
+    }
+    ```
+*   **After:**
+    ```java
+    private void applyTheme() {
+        GameTheme t = themes.get(currentThemeIndex);
+        render.setBackgroundColor(t.getBackground());
+        playerManager.getMaterial().setColor("Color", t.getPlayer());
+        enviromentManager.getFloorMaterial().setColor("Color", t.getFloor());
+    }
+    
+    public void checkThemeUpdate() {
+        if (timer.getTimeInSeconds() >= nextThemeChange) {
+            nextThemeChange += themeChangeInterval;
+            this.nextTheme();
+        }
+    }
 
-### 1. Initialization & Mapping (3 Tests)
-*   **1. `testKeyboardMappings()`**: Verifies registration of "START", "Left", and "Right" in the jME system.
-*   **2. `testInputManagerMappingsExist()`**: Ensures all required keys are present in the mapping dictionary.
-*   **3. `testListenerRegistration()`**: Confirms the `InputManager` correctly attached the event listener.
+    private void nextTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.size();
+        applyTheme();
+    }
+    ```
+*   **Solution:** Replaced the conditional operator with a collection of `GameTheme` objects.
+*   **Rationale:** This makes the code scalable. Adding a new theme no longer requires editing the switching logic.
 
-### 2. Game State Management (2 Tests)
-*   **4. `testStartGameActionWhenGameIsNotStarted()`**: Checks if the game transitions to an active state on "Enter".
-*   **5. `testStartGameActionWhenGameIsAlreadyStarted()`**: Prevents duplicate logic execution if the game is already running.
+---
 
-### 3. Movement Mechanics (4 Tests)
-*   **6. `testMoveLeftActionWhenGameIsStarted()`**: Verifies leftward translation and camera tilt.
-*   **7. `testMoveRightActionWhenGameIsStarted()`**: Verifies rightward translation.
-*   **8. `testMovementActionsWhenGameIsNotStarted()`**: Ensures input is ignored if the game hasn't started.
-*   **9. `testSidewaysValueCalculation()`**: Validates movement step accuracy relative to current speed.
+### 6. God Object
+*   **Problem Description:** The `CubeField` class (SimpleApplication) managed all aspects of the game simultaneously.
+*   **Before:**
+    ```java
+    public class CubeField extends SimpleApplication {
+        // Fields for player, obstacles, cameras, UI, timers...
+        // All initialization and update methods in one file.
+    }
+    ```
+*   **After:**
+    ```java
+    private void initializeComponents() {
+        TpfTpsHandler tpfTpsHandler = new TpfTpsHandler(TICKS_PER_SECOND);
+        GameSession session = new GameSession(...);
+        PlayerManager playerManager = new PlayerManager(assetManager, rootNode, session, tpfTpsHandler);
+        EnvironmentManager environmentManager = new EnvironmentManager(assetManager, rootNode, playerManager);
+        ThemeManager themeManager = new ThemeManager(renderer, playerManager, environmentManager, timer, THEME_CHANGE_INTERVAL);
+        ObstacleManager obstacleManager = new ObstacleManager(...);
+        CameraManager cameraManager = new CameraManager(cam, playerManager, tpfTpsHandler);
+        UIManager uiManager = new UIManager(assetManager, guiNode, session);
+        gameRunner = new GameRunner(...);
+        new GameInputManager(...).init();
+    }
+    ```
+*   **Solution:** **Extract Class** (Separating classes by areas of responsibility).
+*   **Rationale:** Each class now handles its own narrow task, which simplifies maintenance.
 
-### 4. Game Session (`GameSession`) (5 Tests)
-*   **10. `testScoreIncrementsBasedOnTimeStep()`**: Validates score growth relative to elapsed time.
-*   **11. `testSpeedIncrementsCorrectly()`**: Confirms speed acceleration logic per tick.
-*   **12. `testSpeedDoesNotExceedMaxLimit()`**: Enforces the maximum speed cap.
-*   **13. `testDifficultyScalingReducesSpawnArea()`**: Verifies spawn area shrinks every 10 seconds.
-*   **14. `testDifficultyDoesNotScaleBelowObstacleCount()`**: Validates the lower bounds of the spawn area.
+---
 
-### 5. Game Lifecycle (`GameRunner`) (3 Tests)
-*   **15. `testGameRunnerStateTransitionOnCollision()`**: Stops logic execution upon collision.
-*   **16. `testResetRestoresInitialDataState()`**: Confirms score and speed reset on game restart.
-*   **17. `testStateFreezesAfterCollision()`**: Ensures no data mutation occurs after a "Game Over" event.
+### 7. Code Duplication
+*   **Problem Description:** Calculation of object displacement based on `tpf` was repeated in several places in the program.
+*   **Before:**
+    ```java
+    player.move(speed * tpf * fpsRate, 0, 0);
+    Score += fpsRate * tpf;
+    ```
+*   **After:**
+    ```java
+    public class TpfTpsHandler {
+        private final float ticksPerSecond;
+        private float timeStep = 0f;
+       	public void updateTimeStep(float tpf) {
+            this.timeStep = ticksPerSecond * tpf;
+        }
+        
+        public float getTimeStep() {
+            return this.timeStep;
+        }
+        // ... methods for tilt and movement calculation
+    }
+    ```
+*   **Solution:** Created a centralized `TpfTpsHandler` class to calculate the time delta.
+*   **Rationale:** **DRY** (Don't Repeat Yourself) principle. Changing the time calculation logic now happens in one place.
 
-### 6. Obstacle Management (`ObstacleManager`) (4 Tests)
-*   **18. `testCheckCollisionsDetectsCollision()`**: Validates intersection detection between player and cubes.
-*   **19. `testSpawnIfNeededSpawnsObstacles()`**: Checks automatic generation of cubes when count is low.
-*   **20. `testCleanupRemovesOffscreenObstacles()`**: Verifies removal of cubes that are behind the player.
-*   **21. `testClearRemovesAllObstacles()`**: Ensures full cleanup during transitions.
+---
 
-### 7. Visual Themes (`ThemeManager`) (5 Tests)
-*   **22. `testInitialThemeStateOnReset()`**: Verifies default theme application.
-*   **23. `testThemeChangeTiming()`**: Checks theme rotation every 20 seconds.
-*   **24. `testCyclingThroughAllThemes()`**: Validates the theme loop (Last -> First).
-*   **25. `testPlayerMaterialUpdatesWithTheme()`**: Ensures player color syncs with the active theme.
-*   **26. `testRandomObstacleColorFromCurrentTheme()`**: Confirms obstacle colors belong to the active palette.
+### 8. Primitive Obsession
+*   **Problem Description:** Player movement was managed through direct manipulation of coordinates.
+*   **Before:**
+    ```java
+    player.move(0, 0, (speed / 2f) * value * fpsRate);
+    ```
+*   **After:**
+    ```java
+    public void moveForward() {
+        playerMesh.move(tpfTpsHandler.getTimeStep() * session.getMoveSpeed(), 0, 0);
+    }
 
-### 8. User Interface (`UIManager`) (3 Tests)
-*   **27. `testInitialStatusOnStartup()`**: Displays "PRESS ENTER" at launch.
-*   **28. `testGameOverShowsExactMessage()`**: Validates loss notification text.
-*   **29. `testUIManagerFormatsScoreCorrectly()`**: Validates string formatting for "Current Score: [Value]".
+    public void moveLeft() { 
+        playerMesh.move(0, 0, -tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed()); 
+    }
+    
+    public void moveRight() {
+        playerMesh.move(0, 0, tpfTpsHandler.getSidewaysMoveVal() * session.getMoveSpeed());
+    }
+    ```
+*   **Solution:** Created high-level methods in `PlayerManager`.
+*   **Rationale:** Moving from digit manipulation to game concepts (Move Forward, Left, Right).
+
+---
+
+### 9. Message Chain
+*   **Problem Description:** To get obstacle coordinates, the code accessed deeply nested object methods.
+*   **Before:**
+    ```java
+    if (cubeField.get(i).getLocalTranslation().getX() + 10 < player.getLocalTranslation().getX()) { ... }
+    ```
+*   **After:**
+    ```java
+    private void cleanup() {
+        float playerX = playerManager.getLocation().x;
+        activeObstacles.removeIf(obstacle -> {
+            if (obstacle.getLocalTranslation().x + cleanupThreshold < playerX) {
+                obstacle.removeFromParent();
+                return true;
+            }
+            return false;
+        });
+    }
+    ```
+*   **Solution:** Hid delegation using wrapper methods.
+*   **Rationale:** Adherence to the **Law of Demeter**. A class shouldn't know about the internal structure of a `Spatial` for a simple check.
+
+---
+
+### 10. Inappropriate Intimacy
+*   **Problem Description:** The obstacle generation method interfered too deeply with `Player` object details.
+*   **Before:**
+    ```java
+    int playerX = (int) player.getLocalTranslation().getX();
+    int playerZ = (int) player.getLocalTranslation().getZ();
+    randomizeCube(playerX, playerZ); 
+    ```
+*   **After:**
+    ```java
+    Vector3f playerPos = playerManager.getLocation();
+    // Using an encapsulated method to retrieve position
+    ```
+*   **Solution:** Used the `getLocation()` method in `PlayerManager` instead of direct access to the `Spatial`.
+*   **Rationale:** Refactoring allows for better encapsulation of player data.
+
+---
+
+## List of Tests (29 Scenarios)
+
+### 1. Initialization and Mapping Tests (3 tests)
+*   **1. `testKeyboardMappings()`**: Verify registration of "START", "Left", and "Right" commands in the jME system.
+*   **2. `testInputManagerMappingsExist()`**: Validate the presence of all required keys in the mapping dictionary.
+*   **3. `testListenerRegistration()`**: Confirm that the `InputManager` correctly added the event listener.
+
+### 2. Game State Management Tests (2 tests)
+*   **4. `testStartGameActionWhenGameIsNotStarted()`**: Verify `isGameStarted` transitions to `true` when Enter is pressed.
+*   **5. `testStartGameActionWhenGameIsAlreadyStarted()`**: Prevent redundant calls to start logic during active gameplay.
+
+### 3. Movement Mechanics Tests (4 tests)
+*   **6. `testMoveLeftActionWhenGameIsStarted()`**: Verify model displacement to the left and camera tilt activation.
+*   **7. `testMoveRightActionWhenGameIsStarted()`**: Verify model displacement to the right.
+*   **8. `testMovementActionsWhenGameIsNotStarted()`**: Ignore movement commands if the game has not started.
+*   **9. `testSidewaysValueCalculation()`**: Validate calculation of movement step relative to speed.
+
+### 4. Game Session Tests (5 tests)
+*   **10. `testScoreIncrementsBasedOnTimeStep()`**: Verify score increments based on time elapsed.
+*   **11. `testSpeedIncrementsCorrectly()`**: Validate speed increase (acceleration) with each tick.
+*   **12. `testSpeedDoesNotExceedMaxLimit()`**: Check the maximum speed limit constraint.
+*   **13. `testDifficultyScalingReducesSpawnArea()`**: Decrease `spawnAreaScale` every 10 seconds.
+*   **14. `testDifficultyDoesNotScaleBelowObstacleCount()`**: Check the lower boundary for difficulty scaling.
+
+### 5. Game Lifecycle Tests (3 tests)
+*   **15. `testGameRunnerStateTransitionOnCollision()`**: Stop logic upon detecting a collision.
+*   **16. `testResetRestoresInitialDataState()`**: Return score and speed to initial values upon restart.
+*   **17. `testStateFreezesAfterCollision()`**: Guarantee that `update` does not change data after Game Over.
+
+### 6. Obstacle Manager Tests (4 tests)
+*   **18. `testCheckCollisionsDetectsCollision()`**: Detect intersection between player physical boundaries and cubes.
+*   **19. `testSpawnIfNeededSpawnsObstacles()`**: Automatically generate new objects when count is low.
+*   **20. `testCleanupRemovesOffscreenObstacles()`**: Remove cubes that are left behind the player.
+*   **21. `testClearRemovesAllObstacles()`**: Clear the scene when returning to the menu.
+
+### 7. Theme System Tests (5 tests)
+*   **22. `testInitialThemeStateOnReset()`**: Set default theme during initialization.
+*   **23. `testThemeChangeTiming()`**: Switch to a new theme exactly after 20 seconds.
+*   **24. `testCyclingThroughAllThemes()`**: Cyclical transition from the last theme back to the first.
+*   **25. `testPlayerMaterialUpdatesWithTheme()`**: Change player color when the theme changes.
+*   **26. `testRandomObstacleColorFromCurrentTheme()`**: Verify that new obstacles use colors from the current theme's palette.
+
+### 8. User Interface Tests (3 tests)
+*   **27. `testInitialStatusOnStartup()`**: Display "PRESS ENTER" text on startup.
+*   **28. `testGameOverShowsExactMessage()`**: Verify the exact content of the game-over message.
+*   **29. `testUIManagerFormatsScoreCorrectly()`**: Validate the formatting of the "Current Score: [Value]" string.

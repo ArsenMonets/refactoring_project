@@ -34,19 +34,18 @@ package com.github.arsenmonets.refactoringproject;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
+import com.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.*;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
+import com.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import com.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 import com.jme3.system.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.*;
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
-import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 /**
  * @author Original: Kyle "bonechilla" Williams

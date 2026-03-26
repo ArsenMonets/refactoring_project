@@ -29,48 +29,55 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.objectmanagers;
+package com.github.arsenmonets.refactoringproject.refactored.ui;
 
-import com.jme3.renderer.Camera;
-
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-
-import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
+import com.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.jme3.asset.AssetManager;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
+import com.jme3.scene.Node;
 
 /**
  * @author Original: Kyle "bonechilla" Williams
  * @author Refactoring: Arsen Monets
  */
-public class CameraManager {
-    private static final Vector3f CAM_OFFSET = new Vector3f(-8f, 2f, 0);
-    private static final float SMOOTHING_FACTOR = .99f;
-    private final Camera cam;
-    private float currentAngle = 0;
-    private final PlayerManager playerManager;
-	private final TpfTpsHandler handler;
+public class UIManager {
+    private static final String FONT_PATH = "Interface/Fonts/Default.fnt";
+    private final BitmapText scoreText;
+    private final BitmapText statusText;
+    private final Node guiNode;
+    private final GameSession session;
 
-    public CameraManager(Camera cam, PlayerManager playerManager, TpfTpsHandler handler) {
-        this.cam = cam;
-        this.playerManager = playerManager;
-        this.handler = handler;
+    public UIManager(AssetManager assetManager, Node guiNode, GameSession session) {
+        this.guiNode = guiNode;
+        this.session = session;
+        BitmapFont font = assetManager.loadFont(FONT_PATH);
+        
+        scoreText = createText(font, 0, 2);
+        statusText = createText(font, 0, 5);
+        
+        guiNode.attachChild(scoreText);
+    }
+
+    private BitmapText createText(BitmapFont font, float x, float y) {
+        BitmapText txt = new BitmapText(font);
+        txt.setSize(font.getCharSet().getRenderedSize());
+        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, 0);
+        return txt;
     }
 
     public void update() {
-        Vector3f targetLocation = playerManager.getLocation();
-		cam.setLocation(targetLocation.add(CAM_OFFSET));
-        cam.lookAt(targetLocation, Vector3f.UNIT_Y);
-        Quaternion rot = new Quaternion().fromAngleNormalAxis(currentAngle, Vector3f.UNIT_Z);
-        cam.setRotation(cam.getRotation().mult(rot));
-        currentAngle *= FastMath.pow(SMOOTHING_FACTOR, handler.getTimeStep());
+        scoreText.setText("Current Score: " + session.getCurrentScore());
     }
 
-    public void addLeftTilt() {
-        currentAngle -= handler.getCameraTiltCoeff();
+    public void showStatus(String text) {
+        statusText.setText(text);
+        if (!guiNode.hasChild(statusText)) {
+            guiNode.attachChild(statusText);
+        }
     }
-    
-    public void addRightTilt() {
-        currentAngle += handler.getCameraTiltCoeff();
+
+    public void hideStatus() {
+        statusText.removeFromParent();
     }
 }

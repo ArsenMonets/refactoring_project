@@ -29,18 +29,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package сom.github.arsenmonets.refactoringproject.refactored.input;
+package com.github.arsenmonets.refactoringproject.refactored.input;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import com.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import com.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 /**
  * @author Original: Kyle "bonechilla" Williams

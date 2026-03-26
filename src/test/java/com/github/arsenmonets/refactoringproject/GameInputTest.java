@@ -33,6 +33,12 @@ package com.github.arsenmonets.refactoringproject;
 
 import static org.mockito.Mockito.*;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
+import com.github.arsenmonets.refactoringproject.refactored.input.GameInputManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import com.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
+import com.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 import com.jme3.input.InputManager;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -41,13 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameRunner;
-import сom.github.arsenmonets.refactoringproject.refactored.input.GameInputManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.CameraManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.refactored.tpftps.TpfTpsHandler;
-import сom.github.arsenmonets.refactoringproject.refactored.ui.UIManager;
 
 /**
  * @author Original: Kyle "bonechilla" Williams

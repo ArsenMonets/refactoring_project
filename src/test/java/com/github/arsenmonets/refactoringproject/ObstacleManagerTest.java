@@ -35,6 +35,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.github.arsenmonets.refactoringproject.refactored.core.GameSession;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
+import com.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
+import com.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetManager;
 import com.jme3.bounding.BoundingVolume;
@@ -51,11 +55,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import сom.github.arsenmonets.refactoringproject.refactored.core.GameSession;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.ObstacleManager;
-import сom.github.arsenmonets.refactoringproject.refactored.objectmanagers.PlayerManager;
-import сom.github.arsenmonets.refactoringproject.refactored.themes.ThemeManager;
 
 import java.util.ArrayList;
 import java.util.List;
