@@ -111,7 +111,7 @@ public class ThemeManager {
     	applyTheme(); 
     }
     
-    public void startThemeChangingLoop() {
+    public void resetThemeTimer() {
     	nextThemeChange = timer.getTimeInSeconds() + themeChangeInterval;
     }
 }

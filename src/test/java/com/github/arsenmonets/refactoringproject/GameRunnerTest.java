@@ -78,7 +78,7 @@ class GameRunnerTest {
     @Test
     void testDifficultyScalingReducesSpawnArea() {
         when(timer.getTimeInSeconds()).thenReturn(0.0f);
-        session.startDifficultyChangeLoop();
+        session.startSession();
         
         int scaleBefore = session.getSpawnAreaScale();
         
@@ -104,12 +104,12 @@ class GameRunnerTest {
     void testResetRestoresInitialDataState() {
         when(tpfTpsHandler.getTimeStep()).thenReturn(10.0f);
         session.update();
-
         session.reset();
-        
-        assertEquals(0, session.getCurrentScore());
+        assertEquals(10.0f, session.getCurrentScore());
         assertEquals(INITIAL_SCALE, session.getSpawnAreaScale());
         assertEquals(0.025f, session.getMoveSpeed(), 0.0001);
+        gameRunner.startGame();
+        assertEquals(0, session.getCurrentScore());
     }
 
     @Test
@@ -132,7 +132,7 @@ class GameRunnerTest {
     @Test
     void testDifficultyDoesNotScaleBelowObstacleCount() {
         when(timer.getTimeInSeconds()).thenReturn(0.0f);
-        session.startDifficultyChangeLoop();
+        session.startSession();
 
         for(int i = 1; i <= 20; i++) {
             when(timer.getTimeInSeconds()).thenReturn(i * 11.0f);
@@ -141,4 +141,5 @@ class GameRunnerTest {
 
         assertTrue(session.getSpawnAreaScale() >= 10);
     }
+ 
 }

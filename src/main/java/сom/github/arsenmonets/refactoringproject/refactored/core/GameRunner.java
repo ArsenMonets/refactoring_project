@@ -66,6 +66,7 @@ public class GameRunner {
 		this.uiManager = uiManager;
 		this.themeManager = themeManager;
 		this.tpfTpsHandler = tpfTpsHandler;
+		uiManager.showStatus("PRESS ENTER");
 		gameReset();
 	}
 
@@ -100,7 +101,6 @@ public class GameRunner {
         obstacleManager.clear();
         themeManager.reset();
         playerManager.reset();
-        uiManager.showStatus("PRESS ENTER");
     }
 
     public boolean isGameStarted() {
@@ -109,7 +109,7 @@ public class GameRunner {
 
     public void startGame() {
         isGameStarted = true;
-        themeManager.startThemeChangingLoop();
-        session.startDifficultyChangeLoop();
+        themeManager.resetThemeTimer();
+        session.startSession();
     }
 }

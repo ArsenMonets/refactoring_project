@@ -54,7 +54,7 @@ class ThemeTest {
     void testThemeChangeTimingAfterStartLoop() {
     	themeManager.reset();
         when(timer.getTimeInSeconds()).thenReturn(10.0f);
-        themeManager.startThemeChangingLoop(); 
+        themeManager.resetThemeTimer(); 
 
         when(timer.getTimeInSeconds()).thenReturn(25.0f);
         themeManager.checkThemeUpdate();
@@ -74,7 +74,7 @@ class ThemeTest {
     void testCyclingThroughAllThemes() {
         themeManager.reset();
         when(timer.getTimeInSeconds()).thenReturn(0.0f);
-        themeManager.startThemeChangingLoop();
+        themeManager.resetThemeTimer(); 
         
         int totalThemes = 9; 
 
@@ -91,7 +91,7 @@ class ThemeTest {
     void testResetAlwaysReturnsToIndexZero() {
     	themeManager.reset();
         when(timer.getTimeInSeconds()).thenReturn(0.0f);
-        themeManager.startThemeChangingLoop();
+        themeManager.resetThemeTimer(); 
         when(timer.getTimeInSeconds()).thenReturn(21.0f);
         themeManager.checkThemeUpdate();
 
@@ -109,7 +109,7 @@ class ThemeTest {
         verify(playerMaterial).setColor(eq("Color"), eq(ColorRGBA.Red));
 
         when(timer.getTimeInSeconds()).thenReturn(0.0f);
-        themeManager.startThemeChangingLoop();
+        themeManager.resetThemeTimer(); 
         when(timer.getTimeInSeconds()).thenReturn(21.0f);
         themeManager.checkThemeUpdate(); 
 

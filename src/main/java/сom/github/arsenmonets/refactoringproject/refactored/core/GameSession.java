@@ -51,7 +51,7 @@ public class GameSession {
     private final int initialSpawnScale;
     private final int minObstacles;
 
-    private float currentScore;
+    private float currentScore = 0;
     private int spawnAreaScale;
     private float moveSpeed;
     private float nextDifficultyUpdate;
@@ -71,12 +71,12 @@ public class GameSession {
     }
 
     public void reset() {
-        currentScore = 0;
         spawnAreaScale = initialSpawnScale;
         moveSpeed = minObstacles / SPEED_DIVIDER_CONSTANT;
     }
     
-    public void startDifficultyChangeLoop() {
+    public void startSession() {
+    	currentScore = 0;
         nextDifficultyUpdate = timer.getTimeInSeconds() + difficultyInterval;
     }
 
