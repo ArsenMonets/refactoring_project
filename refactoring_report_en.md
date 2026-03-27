@@ -67,10 +67,14 @@
 *   **Before:**
     ```java
     private int difficulty; 
+    private Geometry fcube;
     ```
 *   **After:**
     ```java
+    // in GameSession class
     private int spawnAreaScale;
+    // in ObstacleManager class
+    private final Geometry prototype;
     ```
 *   **Solution:** Renamed the field to `spawnAreaScale`.
 *   **Rationale:** The name should clearly reflect the developer's intent. Proper naming reduces the time required to understand the code.
@@ -245,7 +249,14 @@
 *   **Problem Description:** To get obstacle coordinates, the code accessed deeply nested object methods.
 *   **Before:**
     ```java
-    if (cubeField.get(i).getLocalTranslation().getX() + 10 < player.getLocalTranslation().getX()) { ... }
+    for (int i = 0; i < cubeField.size(); i++){
+        // some other code for intersection that should be in another method
+        if (cubeField.get(i).getLocalTranslation().getX() + 10 < player.getLocalTranslation().getX()){
+            cubeField.get(i).removeFromParent();
+            cubeField.remove(cubeField.get(i));
+        }
+    }
+    
     ```
 *   **After:**
     ```java
@@ -260,26 +271,35 @@
         });
     }
     ```
-*   **Solution:** Hid delegation using wrapper methods.
-*   **Rationale:** Adherence to the **Law of Demeter**. A class shouldn't know about the internal structure of a `Spatial` for a simple check.
+*   **Solution:** Hide delegation using lamba and high-level function (removeIf).
+*   **Rationale:** More readable code. Avoided duplication (get(i))
 
 ---
 
-### 10. Inappropriate Intimacy
-*   **Problem Description:** The obstacle generation method interfered too deeply with `Player` object details.
+### 10. Data clums
+*   **Problem Description:** Some fields are very related but still are not grouped by classes.
 *   **Before:**
     ```java
-    int playerX = (int) player.getLocalTranslation().getX();
-    int playerZ = (int) player.getLocalTranslation().getZ();
-    randomizeCube(playerX, playerZ); 
+    // UI text
+    private BitmapFont defaultFont;
+    private BitmapText fpsScoreText, pressStart;
+    // related to player
+    private Node player;
+    private Material playerMaterial;
+    // all in the same class
     ```
 *   **After:**
     ```java
-    Vector3f playerPos = playerManager.getLocation();
-    // Using an encapsulated method to retrieve position
+    // in UIManager class
+    private static final String FONT_PATH = "Interface/Fonts/Default.fnt";
+    private final BitmapText scoreText;
+    private final BitmapText statusText;
+    // in PlayerManager  class
+    private final Geometry playerMesh;
+    private final Material material;
     ```
-*   **Solution:** Used the `getLocation()` method in `PlayerManager` instead of direct access to the `Spatial`.
-*   **Rationale:** Refactoring allows for better encapsulation of player data.
+*   **Solution:**: Group related field by classes.
+*   **Rationale:** More readable code. Related things in one place. Better to make changes.
 
 ---
 

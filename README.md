@@ -15,7 +15,7 @@ The project moved away from a "God Object" architecture toward a **Manager-based
 ##  Getting Started & Setup
 
 ### **Prerequisites**
-*   **Java Development Kit (JDK) 11** or higher.
+*   **Java Development Kit (JDK) 8** or higher.
 *   **Maven 3.6+** (for dependency management).
 *   An IDE like **IntelliJ IDEA** (recommended) or **Eclipse**.
 
@@ -27,14 +27,14 @@ The project moved away from a "God Object" architecture toward a **Manager-based
 
 ### **Option 2: Eclipse IDE**
 1.  **Import:** `File > Import... > Maven > Existing Maven Projects`.
-2.  **Configuration:** Ensure your Project Facets are set to Java 11+.
+2.  **Configuration:** Ensure your Project Facets are set to Java 8+.
 3.  **Run:** Right-click the project -> `Run As > Java Application`.
 4.  **Test:** Right-click the project -> `Run As > JUnit Test`.
 
 ### **Option 3: Command Line**
 *   **Build:** `mvn clean install`
 *   **Run Tests:** `mvn test`
-*   **Run Game:** `mvn exec:java -Dexec.mainClass="your.package.CubeField"`
+*   **Run Game:** `mvn exec:java -Dexec.mainClass="com.github.arsenmonets.refactoringproject.refactored(old).CubeField"`
 
 ---
 
@@ -51,12 +51,12 @@ The project moved away from a "God Object" architecture toward a **Manager-based
 2.  **Extracting Magic Numbers:** Used named constants for speed dividers and scales.
 3.  **Renaming Variables:** Improved clarity (e.g., `difficulty` became `spawnAreaScale`).
 4.  **Extract Method:** Decomposed 100+ line methods into readable sub-routines.
-5.  **Polymorphism:** Replaced `switch(colorInt)` with a `GameTheme` collection.
-6.  **Extract Class:** Broke down the `SimpleApplication` into 6+ specialized classes.
-7.  **Time Step Handler:** Centralized delta-time logic to prevent "FPS-dependent" speed.
+5.  **Long switch:** Replaced `switch(colorInt)` with a `GameTheme` collection.
+6.  **Extract Class:** Broke down the `CubeField` into 6+ specialized classes.
+7.  **Duplication:** Centralized delta-time logic in `TpfTpsHandler`.
 8.  **Primitive Obsession:** Replaced raw coordinate manipulation with `moveLeft()`/`moveRight()`.
-9.  **Law of Demeter:** Simplified message chains to prevent deep object coupling.
-10. **Dependency Injection:** Used constructor injection to manage component relationships.
+9.  **Message Chains:** Simplified message chains to prevent deep object coupling.
+10. **Data clumps:** Used classes for related objects.
 
 ---
 
@@ -71,18 +71,43 @@ The project includes comprehensive unit tests covering:
 ---
 
 ##  Project Structure
-```text
-/src
-  /main
-  	/java/com/github/arsenmonets/refactoringproject
-  	 /old <- old code
-  	 /refactored <- new code
-				    /core      <- Central game runner
-				    /managers  <- Specialized logic (Player, Obstacle, etc.)
-				    /themes   <- Classes related to themes
-				    /tpgtps <- Classes related to some metrics
-				    /ui <- Classes related to UI
-				    /input <- Classes related to buttons
-  /test
-    /java/com/github/arsenmonets/refactoringproject     <- 29 JUnit 5 test scenarios
-/pom.xml                <- Project dependencies
+- README.md
+- refactoring_report_en.md
+- refactoring_report_ua.md
+- src
+  - main
+    - java
+      - com
+        - github
+          - arsenmonets
+            - refactoringproject
+              - old
+                - CubeField.java
+              - refactored
+                - core
+                  - CubeField.java
+                  - GameRunner.java
+                - input
+                  - GameInputManager.java
+                - objectmanagers
+                  - CameraManager.java
+                  - EnvironmentManager.java
+                  - ObstacleManager.java
+                  - PlayerManager.java
+                  - ThemeManager.java
+                - tpftps
+                  - TpfTpsHandler.java
+                - ui
+                  - UIManager.java
+- test
+  - java
+    - com
+      - github
+        - arsenmonets
+          - refactoringproject
+            - ThemeTest.java
+			- GameRunnerTest.java
+			- ObstacleManagerTest.java
+			- UITest.java
+			- GameInputTest.java
+- pom.xml
