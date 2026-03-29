@@ -84,9 +84,10 @@ The project includes comprehensive unit tests covering:
               - old
                 - CubeField.java
               - refactored
+                - CubeField.java
                 - core
-                  - CubeField.java
                   - GameRunner.java
+                  - GameSession.java
                 - input
                   - GameInputManager.java
                 - objectmanagers
@@ -94,6 +95,8 @@ The project includes comprehensive unit tests covering:
                   - EnvironmentManager.java
                   - ObstacleManager.java
                   - PlayerManager.java
+                - themes
+                  - GameTheme.java
                   - ThemeManager.java
                 - tpftps
                   - TpfTpsHandler.java
@@ -106,8 +109,8 @@ The project includes comprehensive unit tests covering:
         - arsenmonets
           - refactoringproject
             - ThemeTest.java
-			- GameRunnerTest.java
-			- ObstacleManagerTest.java
-			- UITest.java
-			- GameInputTest.java
+            - GameRunnerTest.java
+            - ObstacleManagerTest.java
+            - UITest.java
+            - GameInputTest.java
 - pom.xml
